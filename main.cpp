@@ -1,29 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "main.h"
 
-typedef struct Position {
-	int iRow;
-	int iColumn;
-} POSITION;
-
-typedef struct PositionArray {
-	POSITION * pPositions;
-	int iCount;
-} POSITION_ARRAY;
-
-double ** ReadMatrix();
-void PrintMatrix(double ** ppMatrix);
-void AddPosition(POSITION_ARRAY * posArray, POSITION posPositionToAdd);
-POSITION StepOne(double ** ppMatrix);
-void StepTwo(double ** ppMatrix, POSITION posPivot);
-void StepThree(double ** ppMatrix, POSITION posPivot);
-void StepFour(double ** ppMatrix, POSITION posPivot);
-POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot);
-void StepSix(double ** ppMatrix, POSITION_ARRAY pposPivots);
-
-int iColumns, iRows;
-
+// Hauptfunktion. Programmaufrufspunkt.
 int main(int argc, char argv[])
 {
 	double ** ppMatrix = ReadMatrix();
@@ -156,7 +133,7 @@ void StepTwo(double ** ppMatrix, POSITION posPivot)
 
 void StepThree(double ** ppMatrix, POSITION posPivot)
 {
-	double fElement = ppMatrix[posPivot.iColumn][posPivot.iRow];
+	double fElement = ppMatrix[posPivot.iColumn][0];
 
 	for(int i = 0; i < iColumns; i++) {
 		ppMatrix[i][0] *= (1.0f / fElement);
