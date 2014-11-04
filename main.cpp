@@ -5,7 +5,9 @@ int main(int argc, char argv[])
 {
 	double ** ppMatrix = ReadMatrix();
 	if(ppMatrix == NULL) {
-		printf("Error while reading matrix. Terminate programm. / Fehler beim Einlesen der Matrix. Beende Programm");
+		printf("Error while reading matrix. Terminate programm. / Fehler beim Einlesen der Matrix. Beende Programm.\n");
+		system("pause");
+		return 0;
 	}
 
 	printf("Eingelesen - ");
@@ -13,41 +15,87 @@ int main(int argc, char argv[])
 
 	POSITION posPivot = StepOne(ppMatrix);
 	if(posPivot.iColumn == -1) {
-		printf("Fettig. Nix zu tun.");
+		printf("Fettig. Nix zu tun.\n");
+		system("pause");
+		return 0;
 	}
 
 
 	StepTwo(ppMatrix, posPivot);
-	printf("Schritt 1 & 2 - ");
+	printf("\nSchritt 1 & 2 - ");
 	PrintMatrix(ppMatrix);
 	StepThree(ppMatrix, posPivot);
-	printf("Schritt 3 - ");
+	printf("\nSchritt 3 - ");
 	PrintMatrix(ppMatrix);
 	StepFour(ppMatrix, posPivot);
-	printf("Schritt 4 - ");
+	printf("\nSchritt 4 - ");
 	PrintMatrix(ppMatrix);
 	POSITION_ARRAY pivots = StepFive(ppMatrix, posPivot);
-	printf("Schritt 5 - ");
+	printf("\nSchritt 5 - ");
 	PrintMatrix(ppMatrix);
 	AddPosition(&pivots, posPivot);
 	StepSix(ppMatrix, pivots);
-	printf("Fertig - ");
+	printf("\nFertig - ");
 	PrintMatrix(ppMatrix);
 	system("pause");
+	return 0;
 }
 
 double ** ReadMatrix()
 {
-	FILE * fFile = fopen("matrix.txt", "r");
+	printf("Wollen Sie die Matrix aus einer Datei laden oder \x81 \bber den Bildschrim eingeben? [Datei/Bildschirm]\n");
+	printf("  ");
+	char answer[100];
+	scanf("%s", answer);
+	fflush(stdin);
+
+	double ** ppMatrix;
+	if(strcmp(answer, "Datei") == 0) {
+		ppMatrix = ReadMatrixFromFile();
+	} else {
+		ppMatrix = ReadMatrixFromInput();
+	}
+
+	printf("Wollen Sie die Elementarmatrizen in eine Datei schreiben oder auf dem Bildschirm ausgeben? [Datei/Bildschrim]\n");
+	printf("  ");
+	char answer2[100];
+	scanf("%s", answer2);
+	fflush(stdin);
+
+	if(strcmp(answer2, "Datei") == 0) {
+		printf("Bitte geben Sie den Dateinamen an: ");
+		char answer3[200];
+		fgets(answer3, 100, stdin);
+		answer3[strlen(answer3) - 1] = '\0';
+
+		fOut = fopen(answer3, "w");
+
+		if(fOut == NULL) {
+			printf("Fatal Error: Cannot open file: / Fataler Fehler: Kann Datei nicht \x94 \bffnen: %s", answer);
+		}
+	} else {
+		fOut = stdout;
+	}
+
+	return ppMatrix;
+}
+
+double ** ReadMatrixFromFile()
+{
+	printf("Bitte geben Sie den Dateinamen an: ");
+	char answer[200];
+	fgets(answer, 100, stdin);
+	answer[strlen(answer) - 1] = '\0';
+	FILE * fFile = fopen(answer, "r");
 
 	// stream überprüfen
 	if(fFile == NULL) {
-		printf("Fatal Error: Cannot open file: / Fataler Fehler: Kann Datei nicht öffnen: matrix.txt");
+		printf("Fatal Error: Cannot open file: / Fataler Fehler: Kann Datei nicht \x94 \bffnen: %s", answer);
 		return NULL;
 	}
 
 	fscanf(fFile, "%d;%d\n", &iColumns, &iRows);
-
+	
 	double ** ppMatrix;
 	ppMatrix = (double **)malloc(sizeof(double *) * iColumns);
 
@@ -77,6 +125,30 @@ double ** ReadMatrix()
 	}
 
 	fclose(fFile);
+
+	return ppMatrix;
+}
+
+double ** ReadMatrixFromInput()
+{
+	printf("Bitte geben Sie nun, per Komma und Leerzeichen getrennt, die Spalten- und Zeilenanzahl an: ");
+	scanf("%d, %d", &iColumns, &iRows);
+	
+	double ** ppMatrix;
+	ppMatrix = (double **)malloc(sizeof(double *) * iColumns);
+
+	for(int i = 0; i < iColumns; i++) {
+		ppMatrix[i] = (double *)malloc(sizeof(double) * iRows);
+	}
+
+	for(int i = 0; i < iColumns; i++) {
+		for(int g = 0; g < iRows; g++) {
+			printf("Bitte geben Sie nun das %d. Element der %d. Spalte an: ", g + 1, i + 1);
+			scanf("%lf", &ppMatrix[i][g]);
+		}
+	}
+
+	printf("\n");
 
 	return ppMatrix;
 }
@@ -125,10 +197,15 @@ POSITION StepOne(double ** ppMatrix)
 
 void StepTwo(double ** ppMatrix, POSITION posPivot)
 {
+	if(posPivot.iColumn == 0) {
+		return;
+	}
 	double * pTemp = ppMatrix[posPivot.iColumn];
 
 	ppMatrix[posPivot.iColumn] = ppMatrix[0];
 	ppMatrix[0] = pTemp;
+
+	fprintf(fOut, "Füge Elementarmatrix an: T[%d,%d]\n", posPivot.iColumn + iColumnsOffset, 1 + iRowsOffset);
 }
 
 void StepThree(double ** ppMatrix, POSITION posPivot)
@@ -138,6 +215,7 @@ void StepThree(double ** ppMatrix, POSITION posPivot)
 	for(int i = 0; i < iColumns; i++) {
 		ppMatrix[i][0] *= (1.0f / fElement);
 	}
+	fprintf(fOut, "Füge Elementarmatrix an: S[%d](%lf)\n", 1 + iRowsOffset, 1.0f / fElement);
 }
 
 void StepFour(double ** ppMatrix, POSITION posPivot)
@@ -152,6 +230,7 @@ void StepFour(double ** ppMatrix, POSITION posPivot)
 		for(int g = 0; g < iColumns; g++) {
 			ppMatrix[g][i] += - ppMatrix[g][0] * scale;
 		}
+		fprintf(fOut, "Füge Elementarmatrix an: A[%d,%d](%lf)\n", i + iRowsOffset, 1 + iRowsOffset, -scale);
 	}
 }
 
@@ -181,13 +260,17 @@ POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot)
 		}
 	}
 
-	iRows--;
+	iRows--; 
+	iRowsOffset++;
 	iColumns -= posPivot.iColumn + 1;
+	iColumnsOffset += posPivot.iColumn + 1;
 
 	POSITION posNewPivot = StepOne(ppSmallerMatrix);
 	if(posNewPivot.iColumn == -1) {
 		// Rücksetzen
+		iRowsOffset -= (iRowsSave - iRows);
 		iRows = iRowsSave;
+		iRowsOffset -= (iColumnsSave - iColumns);
 		iColumns = iColumnsSave;
 		return pivots; // Fertig
 	}
@@ -212,7 +295,9 @@ POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot)
 	}
 
 	// Rücksetzen
+	iRowsOffset -= (iRowsSave - iRows);
 	iRows = iRowsSave;
+	iRowsOffset -= (iColumnsSave - iColumns);
 	iColumns = iColumnsSave;
 
 	// Eingruppieren der neuen Matrix
