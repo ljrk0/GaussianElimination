@@ -19,6 +19,9 @@ int iColumns, iRows;
 int main(int argc, char argv[])
 {
 	double ** ppMatrix = ReadMatrix();
+	if(ppMatrix == NULL) {
+		printf("Error while reading matrix. Terminate programm. / Fehler beim Einlesen der Matrix. Beende Programm");
+	}
 
 	RESULT1 result1 = StepOne(ppMatrix);
 	if(result1.iColumn == -1) {
@@ -30,19 +33,35 @@ int main(int argc, char argv[])
 	StepFour(ppMatrix, result1);
 	StepFive(ppMatrix, result1);
 
+	for(int i = 0; i < iRows; i++) {
+		for(int g = 0; g < iColumns; g++) {
+			printf("%lf", ppMatrix[g][i]);
+			if(g == iColumns - 1) { // Letzte Spalte 
+				printf("\n"); // Auf neue Zeile wechseln
+			} else {
+				printf(";"); // Trennzeichen ausgeben
+			}
+		}
+	}
 }
 
 double ** ReadMatrix()
 {
 	FILE * fFile = fopen("matrix.txt", "r");
 
+	// stream überprüfen
+	if(fFile == NULL) {
+		printf("Fatal Error: Cannot open file: / Fataler Fehler: Kann Datei nicht öffnen: matrix.txt");
+		return NULL;
+	}
+
 	fscanf(fFile, "%d;%d", &iColumns, &iRows);
 
 	double ** ppMatrix;
-	ppMatrix = malloc(sizeof(double *) * iRows);
+	ppMatrix = (double **)malloc(sizeof(double *) * iRows);
 
 	for(int i = 0; i < iRows; i++) {
-		ppMatrix[i] = malloc(sizeof(double) * iColumns);
+		ppMatrix[i] = (double *)malloc(sizeof(double) * iColumns);
 	}
 
 	char str[1000];
@@ -119,12 +138,18 @@ void StepFive(double ** ppMatrix, RESULT1 result1)
 	int iRowsSave = iRows;
 	int iColumnsSave = iColumns;
 
+	if(iRows - 1 == 0) {
+		return; // Fertig
+	}
 
+	if(iColumns - result1.iColumn == 0) {
+		return; // Fertig
+	}
 
-	double ** ppSmallerMatrix = malloc(sizeof(double *) * iRows - 1);
+	double ** ppSmallerMatrix = (double **)malloc(sizeof(double *) * iRows - 1);
 
 	for(int i = 0; i < iRows; i++) {
-		ppSmallerMatrix[i] = malloc(sizeof(double) * (iColumns - result1.iColumn));
+		ppSmallerMatrix[i] = (double *)malloc(sizeof(double) * (iColumns - result1.iColumn));
 	}
 
 	for(int i = result1.iColumn; i < iColumns; i++) {
@@ -137,11 +162,18 @@ void StepFive(double ** ppMatrix, RESULT1 result1)
 	iColumns -= result1.iColumn;
 
 	RESULT1 res1 = StepOne(ppSmallerMatrix);
+	if(res1.iColumn == -1) {
+		// Rücksetzen
+		iRows = iRowsSave;
+		iColumns = iColumnsSave;
+		return; // Fertig
+	}
 	StepTwo(ppSmallerMatrix, res1);
 	StepThree(ppSmallerMatrix, res1);
 	StepFour(ppSmallerMatrix, res1);
 	StepFive(ppSmallerMatrix, res1);
 
+	// Rücksetzen
 	iRows = iRowsSave;
 	iColumns = iColumnsSave;
 
