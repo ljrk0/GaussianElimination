@@ -24,6 +24,7 @@ int main(int argc, char argv[])
 		printf("Error while reading matrix. Terminate programm. / Fehler beim Einlesen der Matrix. Beende Programm");
 	}
 
+	printf("Eingelesen - ");
 	PrintMatrix(ppMatrix);
 
 	RESULT1 result1 = StepOne(ppMatrix);
@@ -31,13 +32,18 @@ int main(int argc, char argv[])
 		printf("Fettig. Nix zu tun.");
 	}
 
+
 	StepTwo(ppMatrix, result1);
+	printf("Schritt 1 & 2 - ");
 	PrintMatrix(ppMatrix);
 	StepThree(ppMatrix, result1);
+	printf("Schritt 3 - ");
 	PrintMatrix(ppMatrix);
 	StepFour(ppMatrix, result1);
+	printf("Schritt 4 - ");
 	PrintMatrix(ppMatrix);
 	StepFive(ppMatrix, result1);
+	printf("Schritt 5 - ");
 	PrintMatrix(ppMatrix);
 	system("pause");
 }
@@ -185,14 +191,29 @@ void StepFive(double ** ppMatrix, RESULT1 result1)
 		iColumns = iColumnsSave;
 		return; // Fertig
 	}
-	StepTwo(ppSmallerMatrix, res1);
-	StepThree(ppSmallerMatrix, res1);
-	StepFour(ppSmallerMatrix, res1);
-	StepFive(ppSmallerMatrix, res1);
+	StepTwo(ppSmallerMatrix, result1);
+	//printf("Schritt 1 & 2 - ");
+	//PrintMatrix(ppSmallerMatrix);
+	StepThree(ppSmallerMatrix, result1);
+	//printf("Schritt 3 - ");
+	//PrintMatrix(ppSmallerMatrix);
+	StepFour(ppSmallerMatrix, result1);
+	//printf("Schritt 4 - ");
+	//PrintMatrix(ppSmallerMatrix);
+	StepFive(ppSmallerMatrix, result1);
+	//printf("Schritt 5 - ");
+	//PrintMatrix(ppSmallerMatrix);
 
 	// Rücksetzen
 	iRows = iRowsSave;
 	iColumns = iColumnsSave;
+
+	// Eingruppieren der neuen Matrix
+	for(int i = result1.iColumn + 1; i < iColumns; i++) {
+		for(int g = 1; g < iRows; g++) {
+			ppMatrix[i][g] = ppSmallerMatrix[i - result1.iColumn - 1][g - 1];
+		}
+	}
 
 	return;
 }
