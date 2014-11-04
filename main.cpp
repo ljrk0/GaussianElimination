@@ -8,6 +8,7 @@ typedef struct result1 {
 } RESULT1;
 
 double ** ReadMatrix();
+void PrintMatrix(double ** ppMatrix);
 RESULT1 StepOne(double ** ppMatrix);
 void StepTwo(double ** ppMatrix, RESULT1 result1);
 void StepThree(double ** ppMatrix, RESULT1 result1);
@@ -23,26 +24,22 @@ int main(int argc, char argv[])
 		printf("Error while reading matrix. Terminate programm. / Fehler beim Einlesen der Matrix. Beende Programm");
 	}
 
+	PrintMatrix(ppMatrix);
+
 	RESULT1 result1 = StepOne(ppMatrix);
 	if(result1.iColumn == -1) {
 		printf("Fettig. Nix zu tun.");
 	}
 
 	StepTwo(ppMatrix, result1);
+	PrintMatrix(ppMatrix);
 	StepThree(ppMatrix, result1);
+	PrintMatrix(ppMatrix);
 	StepFour(ppMatrix, result1);
+	PrintMatrix(ppMatrix);
 	StepFive(ppMatrix, result1);
+	PrintMatrix(ppMatrix);
 
-	for(int i = 0; i < iRows; i++) {
-		for(int g = 0; g < iColumns; g++) {
-			printf("%lf", ppMatrix[g][i]);
-			if(g == iColumns - 1) { // Letzte Spalte 
-				printf("\n"); // Auf neue Zeile wechseln
-			} else {
-				printf(";"); // Trennzeichen ausgeben
-			}
-		}
-	}
 }
 
 double ** ReadMatrix()
@@ -55,12 +52,12 @@ double ** ReadMatrix()
 		return NULL;
 	}
 
-	fscanf(fFile, "%d;%d", &iColumns, &iRows);
+	fscanf(fFile, "%d;%d\n", &iColumns, &iRows);
 
 	double ** ppMatrix;
 	ppMatrix = (double **)malloc(sizeof(double *) * iRows);
 
-	for(int i = 0; i < iRows; i++) {
+	for(int i = 0; i < iColumns; i++) {
 		ppMatrix[i] = (double *)malloc(sizeof(double) * iColumns);
 	}
 
@@ -73,8 +70,8 @@ double ** ReadMatrix()
 
 		int pos = 0;
 		for(int g = 0; g < iRows; g++) {
-			for(int h = 0; h < strlen(str); g++) {
-				if(str[pos] == ';') {
+			for(int h = 0; pos < strlen(str); h++) {
+				if(str[pos] == ';' || str[pos] == '\n') {
 					pos++;
 					break;
 				}
@@ -88,6 +85,22 @@ double ** ReadMatrix()
 	fclose(fFile);
 
 	return ppMatrix;
+}
+
+void PrintMatrix(double ** ppMatrix)
+{
+	printf("Print Matrix\n");
+	for(int i = 0; i < iRows; i++) {
+		for(int g = 0; g < iColumns; g++) {
+			printf("%lf", ppMatrix[g][i]);
+			if(g == iColumns - 1) { // Letzte Spalte 
+				printf("\n"); // Auf neue Zeile wechseln
+			} else {
+				printf(";"); // Trennzeichen ausgeben
+			}
+		}
+	}
+	printf("\n");
 }
 
 RESULT1 StepOne(double ** ppMatrix)
@@ -179,3 +192,4 @@ void StepFive(double ** ppMatrix, RESULT1 result1)
 
 	return;
 }
+
