@@ -39,7 +39,7 @@ int main(int argc, char argv[])
 	PrintMatrix(ppMatrix);
 	StepFive(ppMatrix, result1);
 	PrintMatrix(ppMatrix);
-
+	system("pause");
 }
 
 double ** ReadMatrix()
@@ -55,21 +55,21 @@ double ** ReadMatrix()
 	fscanf(fFile, "%d;%d\n", &iColumns, &iRows);
 
 	double ** ppMatrix;
-	ppMatrix = (double **)malloc(sizeof(double *) * iRows);
+	ppMatrix = (double **)malloc(sizeof(double *) * iColumns);
 
 	for(int i = 0; i < iColumns; i++) {
-		ppMatrix[i] = (double *)malloc(sizeof(double) * iColumns);
+		ppMatrix[i] = (double *)malloc(sizeof(double) * iRows);
 	}
 
 	char str[1000];
 
-	for(int i = 0; i < iColumns; i++) {
+	for(int i = 0; i < iRows; i++) {
 		fgets(str, 1000, fFile);
 
 		char var[1000];
 
 		int pos = 0;
-		for(int g = 0; g < iRows; g++) {
+		for(int g = 0; g < iColumns; g++) {
 			for(int h = 0; pos < strlen(str); h++) {
 				if(str[pos] == ';' || str[pos] == '\n') {
 					pos++;
@@ -131,7 +131,7 @@ void StepThree(double ** ppMatrix, RESULT1 result1)
 	double fElement = ppMatrix[result1.iColumn][result1.iRow];
 
 	for(int i = 0; i < iColumns; i++) {
-		ppMatrix[i][0] /= (1.0f / fElement);
+		ppMatrix[i][0] *= (1.0f / fElement);
 	}
 }
 
@@ -140,8 +140,12 @@ void StepFour(double ** ppMatrix, RESULT1 result1)
 	for(int i = 1; i < iRows; i++) {
 		double scale = ppMatrix[result1.iColumn][i];
 
+		if(scale == 0.0f) {
+			continue; // mit nächster Zeile weitermachen
+		}
+
 		for(int g = 0; g < iColumns; g++) {
-			ppMatrix[g][i] = - ppMatrix[g][0] * scale;
+			ppMatrix[g][i] += - ppMatrix[g][0] * scale;
 		}
 	}
 }
@@ -162,17 +166,17 @@ void StepFive(double ** ppMatrix, RESULT1 result1)
 	double ** ppSmallerMatrix = (double **)malloc(sizeof(double *) * iRows - 1);
 
 	for(int i = 0; i < iRows; i++) {
-		ppSmallerMatrix[i] = (double *)malloc(sizeof(double) * (iColumns - result1.iColumn));
+		ppSmallerMatrix[i] = (double *)malloc(sizeof(double) * (iColumns - result1.iColumn - 1));
 	}
 
-	for(int i = result1.iColumn; i < iColumns; i++) {
+	for(int i = result1.iColumn + 1; i < iColumns; i++) {
 		for(int g = 1; g < iRows; g++) {
-			ppSmallerMatrix[i - result1.iColumn][g - 1] = ppMatrix[i][g];
+			ppSmallerMatrix[i - result1.iColumn - 1][g - 1] = ppMatrix[i][g];
 		}
 	}
 
 	iRows--;
-	iColumns -= result1.iColumn;
+	iColumns -= result1.iColumn + 1;
 
 	RESULT1 res1 = StepOne(ppSmallerMatrix);
 	if(res1.iColumn == -1) {
@@ -192,4 +196,3 @@ void StepFive(double ** ppMatrix, RESULT1 result1)
 
 	return;
 }
-
