@@ -14,8 +14,14 @@ typedef struct PositionArray {
 	int iCount; // Länge des Arrays
 } POSITION_ARRAY;
 
-// Liest eine Matrix aus einer Datei namens "Matrix.txt" ein. Die Größe wird dabei in die globalen Variablen "iColumns" und "iRows" geschrieben.
+// Verwaltet die Eingabemöglichkeiten
 double ** ReadMatrix();
+
+// Liest eine Matrix aus einer Datei ein. Der Dateiname muss über den Bildschrim (nach Aufforderung) eingegeben werden. Die Größe wird dabei in die globalen Variablen "iColumns" und "iRows" geschrieben.
+double ** ReadMatrixFromFile();
+
+// Liest eine Matrix aus einer Datei ein. Die Werte sowie die Zeilen und Spaltenanzahl müssen über den Bildschrim (nach Aufforderung) eingegeben werden. Die Größe wird dabei in die globalen Variablen "iColumns" und "iRows" geschrieben.
+double ** ReadMatrixFromInput();
 
 // Gibt eine Matrix auf dem Bildschirm aus.
 void PrintMatrix(double ** ppMatrix);
@@ -43,3 +49,10 @@ void StepSix(double ** ppMatrix, POSITION_ARRAY pposPivots);
 
 // In iColumns und iRows steht die Spalten- bzw. Zeilenanzahl der aktuell bearbeiteten Matrix
 int iColumns, iRows;
+
+// In iColumnsOffset und iRowsOffset steht die Spalten- bzw. Zeilenanzahl drin, die von der urspünglichen Matrix bereits entfernt wurde. Dies ist wichtig für die Ausgabe der korrekten Elementarmatrizen während der Rekursion.
+int iColumnsOffset = 0;
+int iRowsOffset = 0;
+
+// In fOut steht ein Stream zur Ausgabedatei der Elementarmatrizen.
+FILE * fOut;
