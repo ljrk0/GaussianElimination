@@ -251,6 +251,16 @@ POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot)
 void StepSix(double ** ppMatrix, POSITION_ARRAY pivots)
 {
 	for(int i = 0; i < pivots.iCount; i++) {
+		for(int g = pivots.pPositions[i].iRow - 1; g >= 0; g--) { // von "unten" (der Matrix) nach "oben" (der Matrix) zählen
+			double scale = ppMatrix[pivots.pPositions[i].iColumn][g];
 
+			if(scale == 0.0f) {
+				continue; // mit nächster Zeile weitermachen
+			}
+
+			for(int h = 0; h < iColumns; h++) {
+				ppMatrix[h][g] += - ppMatrix[h][pivots.pPositions[i].iRow] * scale;
+			}
+		}
 	}
 }
