@@ -2,18 +2,25 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct result1 {
+typedef struct Position {
 	int iRow;
 	int iColumn;
-} RESULT1;
+} POSITION;
+
+typedef struct PositionArray {
+	POSITION * pPositions;
+	int iCount;
+} POSITION_ARRAY;
 
 double ** ReadMatrix();
 void PrintMatrix(double ** ppMatrix);
-RESULT1 StepOne(double ** ppMatrix);
-void StepTwo(double ** ppMatrix, RESULT1 result1);
-void StepThree(double ** ppMatrix, RESULT1 result1);
-void StepFour(double ** ppMatrix, RESULT1 result1);
-void StepFive(double ** ppMatrix, RESULT1 result1);
+void AddPosition(POSITION_ARRAY * posArray, POSITION posPositionToAdd);
+POSITION StepOne(double ** ppMatrix);
+void StepTwo(double ** ppMatrix, POSITION posPivot);
+void StepThree(double ** ppMatrix, POSITION posPivot);
+void StepFour(double ** ppMatrix, POSITION posPivot);
+POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot);
+void StepSix(double ** ppMatrix, POSITION_ARRAY pposPivots);
 
 int iColumns, iRows;
 
@@ -27,23 +34,27 @@ int main(int argc, char argv[])
 	printf("Eingelesen - ");
 	PrintMatrix(ppMatrix);
 
-	RESULT1 result1 = StepOne(ppMatrix);
-	if(result1.iColumn == -1) {
+	POSITION posPivot = StepOne(ppMatrix);
+	if(posPivot.iColumn == -1) {
 		printf("Fettig. Nix zu tun.");
 	}
 
 
-	StepTwo(ppMatrix, result1);
+	StepTwo(ppMatrix, posPivot);
 	printf("Schritt 1 & 2 - ");
 	PrintMatrix(ppMatrix);
-	StepThree(ppMatrix, result1);
+	StepThree(ppMatrix, posPivot);
 	printf("Schritt 3 - ");
 	PrintMatrix(ppMatrix);
-	StepFour(ppMatrix, result1);
+	StepFour(ppMatrix, posPivot);
 	printf("Schritt 4 - ");
 	PrintMatrix(ppMatrix);
-	StepFive(ppMatrix, result1);
+	POSITION_ARRAY pivots = StepFive(ppMatrix, posPivot);
 	printf("Schritt 5 - ");
+	PrintMatrix(ppMatrix);
+	AddPosition(&pivots, posPivot);
+	StepSix(ppMatrix, pivots);
+	printf("Fertig - ");
 	PrintMatrix(ppMatrix);
 	system("pause");
 }
@@ -109,9 +120,20 @@ void PrintMatrix(double ** ppMatrix)
 	printf("\n");
 }
 
-RESULT1 StepOne(double ** ppMatrix)
+void AddPosition(POSITION_ARRAY * posArray, POSITION posPositionToAdd)
 {
-	RESULT1 res = {-1,-1};
+	POSITION * tmp = posArray->pPositions;
+	posArray->pPositions = (POSITION *)malloc(sizeof(POSITION) * (posArray->iCount + 1));
+	for(int i = 0; i < posArray->iCount; i++) {
+		posArray->pPositions[i] = tmp[i];
+	}
+	posArray->pPositions[posArray->iCount] = posPositionToAdd;
+	posArray->iCount ++;
+}
+
+POSITION StepOne(double ** ppMatrix)
+{
+	POSITION res = {-1,-1};
 	for(int i = 0; i < iColumns; i++) {
 		for(int g = 0; g < iRows; g++) {
 			if(ppMatrix[i][g] != 0.0f) {
@@ -124,27 +146,27 @@ RESULT1 StepOne(double ** ppMatrix)
 	return res;
 }
 
-void StepTwo(double ** ppMatrix, RESULT1 result1)
+void StepTwo(double ** ppMatrix, POSITION posPivot)
 {
-	double * pTemp = ppMatrix[result1.iColumn];
+	double * pTemp = ppMatrix[posPivot.iColumn];
 
-	ppMatrix[result1.iColumn] = ppMatrix[0];
+	ppMatrix[posPivot.iColumn] = ppMatrix[0];
 	ppMatrix[0] = pTemp;
 }
 
-void StepThree(double ** ppMatrix, RESULT1 result1)
+void StepThree(double ** ppMatrix, POSITION posPivot)
 {
-	double fElement = ppMatrix[result1.iColumn][result1.iRow];
+	double fElement = ppMatrix[posPivot.iColumn][posPivot.iRow];
 
 	for(int i = 0; i < iColumns; i++) {
 		ppMatrix[i][0] *= (1.0f / fElement);
 	}
 }
 
-void StepFour(double ** ppMatrix, RESULT1 result1)
+void StepFour(double ** ppMatrix, POSITION posPivot)
 {
 	for(int i = 1; i < iRows; i++) {
-		double scale = ppMatrix[result1.iColumn][i];
+		double scale = ppMatrix[posPivot.iColumn][i];
 
 		if(scale == 0.0f) {
 			continue; // mit nächster Zeile weitermachen
@@ -156,64 +178,79 @@ void StepFour(double ** ppMatrix, RESULT1 result1)
 	}
 }
 
-void StepFive(double ** ppMatrix, RESULT1 result1)
+POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot)
 {
+	POSITION_ARRAY pivots = {NULL, 0};
 	int iRowsSave = iRows;
 	int iColumnsSave = iColumns;
 
 	if(iRows - 1 == 0) {
-		return; // Fertig
+		return pivots; // Fertig
 	}
 
-	if(iColumns - result1.iColumn == 0) {
-		return; // Fertig
+	if(iColumns - posPivot.iColumn == 0) {
+		return pivots; // Fertig
 	}
 
 	double ** ppSmallerMatrix = (double **)malloc(sizeof(double *) * iRows - 1);
 
 	for(int i = 0; i < iRows; i++) {
-		ppSmallerMatrix[i] = (double *)malloc(sizeof(double) * (iColumns - result1.iColumn - 1));
+		ppSmallerMatrix[i] = (double *)malloc(sizeof(double) * (iColumns - posPivot.iColumn - 1));
 	}
 
-	for(int i = result1.iColumn + 1; i < iColumns; i++) {
+	for(int i = posPivot.iColumn + 1; i < iColumns; i++) {
 		for(int g = 1; g < iRows; g++) {
-			ppSmallerMatrix[i - result1.iColumn - 1][g - 1] = ppMatrix[i][g];
+			ppSmallerMatrix[i - posPivot.iColumn - 1][g - 1] = ppMatrix[i][g];
 		}
 	}
 
 	iRows--;
-	iColumns -= result1.iColumn + 1;
+	iColumns -= posPivot.iColumn + 1;
 
-	RESULT1 res1 = StepOne(ppSmallerMatrix);
-	if(res1.iColumn == -1) {
+	POSITION posNewPivot = StepOne(ppSmallerMatrix);
+	if(posNewPivot.iColumn == -1) {
 		// Rücksetzen
 		iRows = iRowsSave;
 		iColumns = iColumnsSave;
-		return; // Fertig
+		return pivots; // Fertig
 	}
-	StepTwo(ppSmallerMatrix, result1);
+	StepTwo(ppSmallerMatrix, posNewPivot);
 	//printf("Schritt 1 & 2 - ");
 	//PrintMatrix(ppSmallerMatrix);
-	StepThree(ppSmallerMatrix, result1);
+	StepThree(ppSmallerMatrix, posNewPivot);
 	//printf("Schritt 3 - ");
 	//PrintMatrix(ppSmallerMatrix);
-	StepFour(ppSmallerMatrix, result1);
+	StepFour(ppSmallerMatrix, posNewPivot);
 	//printf("Schritt 4 - ");
 	//PrintMatrix(ppSmallerMatrix);
-	StepFive(ppSmallerMatrix, result1);
+	pivots = StepFive(ppSmallerMatrix, posNewPivot);
 	//printf("Schritt 5 - ");
 	//PrintMatrix(ppSmallerMatrix);
+
+	AddPosition(&pivots, posNewPivot);
+
+	for(int i = 0; i < pivots.iCount; i++) {
+		pivots.pPositions[i].iColumn += posPivot.iColumn + 1; // Auf neue Größe anpassen
+		pivots.pPositions[i].iRow += 1;
+	}
 
 	// Rücksetzen
 	iRows = iRowsSave;
 	iColumns = iColumnsSave;
 
 	// Eingruppieren der neuen Matrix
-	for(int i = result1.iColumn + 1; i < iColumns; i++) {
+	for(int i = posPivot.iColumn + 1; i < iColumns; i++) {
 		for(int g = 1; g < iRows; g++) {
-			ppMatrix[i][g] = ppSmallerMatrix[i - result1.iColumn - 1][g - 1];
+			ppMatrix[i][g] = ppSmallerMatrix[i - posPivot.iColumn - 1][g - 1];
 		}
 	}
 
-	return;
+	return pivots;
+}
+
+void StepSix(double ** ppMatrix, POSITION_ARRAY pivots)
+{
+	for(int i = 0; i < pivots.iCount; i++) {
+
+	}
 }
