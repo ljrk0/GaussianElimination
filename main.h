@@ -26,6 +26,12 @@ double ** ReadMatrixFromInput();
 // Gibt eine Matrix auf dem Bildschirm aus.
 void PrintMatrix(double ** ppMatrix);
 
+// Reserviert den Speicher für eine Matrix
+double ** AllocateMatrixMemory(int iColumns, int iRows);
+
+// Löscht den Speicher für eine Matrix, "iRows" wird hier nicht benötigt, da "free" den Speicher automatisch in der richtigen Länge löscht
+void FreeMatrixMemory(double ** ppMatrix, int iColumns);
+
 // Fügt zu einem Positionsarray ein Element hinzu und übernimmt dabei die Aufgaben der Speicherverwaltung.
 void AddPosition(POSITION_ARRAY * posArray, POSITION posPositionToAdd);
 
