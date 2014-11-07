@@ -186,8 +186,8 @@ POSITION StepOne(double ** ppMatrix)
 	for(int i = 0; i < iColumns; i++) {
 		for(int g = 0; g < iRows; g++) {
 			if(ppMatrix[i][g] != 0.0f) {
-				res.iRow = i;
-				res.iColumn = g;
+				res.iRow = g;
+				res.iColumn = i;
 				return res;
 			}
 		}
@@ -211,6 +211,12 @@ void StepTwo(double ** ppMatrix, POSITION posPivot)
 void StepThree(double ** ppMatrix, POSITION posPivot)
 {
 	double fElement = ppMatrix[posPivot.iColumn][0];
+
+	if(fElement == 0) {
+		printf("Big error... Error in previous steps. Terminate programm. / Grosser Fehler... Fehler in vorherigen Schritten. Beende Programm.\n");
+		system("Pause");
+		exit(-1);
+	}
 
 	for(int i = 0; i < iColumns; i++) {
 		ppMatrix[i][0] *= (1.0f / fElement);
@@ -247,11 +253,12 @@ POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot)
 	if(iColumns - posPivot.iColumn == 0) {
 		return pivots; // Fertig
 	}
+	
+	double ** ppSmallerMatrix;
+	ppSmallerMatrix = (double **)malloc(sizeof(double *) * iColumns);
 
-	double ** ppSmallerMatrix = (double **)malloc(sizeof(double *) * iRows - 1);
-
-	for(int i = 0; i < iRows; i++) {
-		ppSmallerMatrix[i] = (double *)malloc(sizeof(double) * (iColumns - posPivot.iColumn - 1));
+	for(int i = 0; i < iColumns; i++) {
+		ppSmallerMatrix[i] = (double *)malloc(sizeof(double) * iRows);
 	}
 
 	for(int i = posPivot.iColumn + 1; i < iColumns; i++) {
@@ -306,6 +313,12 @@ POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot)
 			ppMatrix[i][g] = ppSmallerMatrix[i - posPivot.iColumn - 1][g - 1];
 		}
 	}
+
+	// Freigeben des Speichers
+	for(int i = 0; i < iColumns - posPivot.iColumn - 1; i++) {
+		free(ppSmallerMatrix[i]);
+	}
+	free(ppSmallerMatrix);
 
 	return pivots;
 }
