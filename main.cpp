@@ -38,6 +38,7 @@ int main(int argc, char argv[])
 	printf("\nFertig - ");
 	PrintMatrix(ppMatrix);
 	system("pause");
+	FreeMatrixMemory(ppMatrix, iColumns);
 	return 0;
 }
 
@@ -96,12 +97,7 @@ double ** ReadMatrixFromFile()
 
 	fscanf(fFile, "%d;%d\n", &iColumns, &iRows);
 	
-	double ** ppMatrix;
-	ppMatrix = (double **)malloc(sizeof(double *) * iColumns);
-
-	for(int i = 0; i < iColumns; i++) {
-		ppMatrix[i] = (double *)malloc(sizeof(double) * iRows);
-	}
+	double ** ppMatrix = AllocateMatrixMemory(iColumns, iRows);
 
 	char str[1000];
 
@@ -134,12 +130,7 @@ double ** ReadMatrixFromInput()
 	printf("Bitte geben Sie nun, per Komma und Leerzeichen getrennt, die Spalten- und Zeilenanzahl an: ");
 	scanf("%d, %d", &iColumns, &iRows);
 	
-	double ** ppMatrix;
-	ppMatrix = (double **)malloc(sizeof(double *) * iColumns);
-
-	for(int i = 0; i < iColumns; i++) {
-		ppMatrix[i] = (double *)malloc(sizeof(double) * iRows);
-	}
+	double ** ppMatrix = AllocateMatrixMemory(iColumns, iRows);
 
 	for(int i = 0; i < iColumns; i++) {
 		for(int g = 0; g < iRows; g++) {
@@ -254,12 +245,7 @@ POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot)
 		return pivots; // Fertig
 	}
 	
-	double ** ppSmallerMatrix;
-	ppSmallerMatrix = (double **)malloc(sizeof(double *) * iColumns);
-
-	for(int i = 0; i < iColumns; i++) {
-		ppSmallerMatrix[i] = (double *)malloc(sizeof(double) * iRows);
-	}
+	double ** ppSmallerMatrix = AllocateMatrixMemory(iColumns, iRows);
 
 	for(int i = posPivot.iColumn + 1; i < iColumns; i++) {
 		for(int g = 1; g < iRows; g++) {
@@ -315,10 +301,7 @@ POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot)
 	}
 
 	// Freigeben des Speichers
-	for(int i = 0; i < iColumns - posPivot.iColumn - 1; i++) {
-		free(ppSmallerMatrix[i]);
-	}
-	free(ppSmallerMatrix);
+	FreeMatrixMemory(ppSmallerMatrix, iColumns - posPivot.iColumn - 1);
 
 	return pivots;
 }
@@ -339,4 +322,24 @@ void StepSix(double ** ppMatrix, POSITION_ARRAY pivots)
 			fprintf(fOut, "Füge Elementarmatrix an: A[%d,%d](%lf)\n", i + iRowsOffset, 1 + iRowsOffset, -scale);
 		}
 	}
+}
+
+double ** AllocateMatrixMemory(int iMatrixColumns, int iMatrixRows)
+{
+	double ** ppMatrix;
+	ppMatrix = (double **)malloc(sizeof(double *) * iMatrixColumns);
+
+	for(int i = 0; i < iMatrixColumns; i++) {
+		ppMatrix[i] = (double *)malloc(sizeof(double) * iMatrixRows);
+	}
+	return ppMatrix;
+}
+
+void FreeMatrixMemory(double ** ppMatrix, int iMatrixColumns)
+{
+	// Freigeben des Speichers
+	for(int i = 0; i < iMatrixColumns; i++) {
+		free(ppMatrix[i]);
+	}
+	free(ppMatrix);
 }
