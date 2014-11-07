@@ -43,7 +43,7 @@ int main(int argc, char argv[])
 
 double ** ReadMatrix()
 {
-	printf("Wollen Sie die Matrix aus einer Datei laden oder \x81 \bber den Bildschrim eingeben? [Datei/Bildschirm]\n");
+	printf("Wollen Sie die Matrix aus einer Datei laden oder \x81 \bber den Bildschirm eingeben? [Datei/Bildschirm]\n");
 	printf("  ");
 	char answer[100];
 	scanf("%s", answer);
@@ -323,6 +323,7 @@ void StepSix(double ** ppMatrix, POSITION_ARRAY pivots)
 			for(int h = 0; h < iColumns; h++) {
 				ppMatrix[h][g] += - ppMatrix[h][pivots.pPositions[i].iRow] * scale;
 			}
+			fprintf(fOut, "Füge Elementarmatrix an: A[%d,%d](%lf)\n", i + iRowsOffset, 1 + iRowsOffset, -scale);
 		}
 	}
 }
