@@ -364,6 +364,8 @@ void WaitForKey()
 {
 #ifdef _WIN32
 	system("pause");
+#elif _WIN64
+	system("pause");
 #else
 	system("read -n1 -r");
 #endif
