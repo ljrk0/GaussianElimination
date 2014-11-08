@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _WIN32 || _WIN64 // weitere Widowsdefinitionen hinzufügen
+#define _USE_WINDOWS_CODE
+#endif
+
 // Diese Struktur ist dafür zuständig, eine bleliebige Position in einer Matrix zu speichern
 typedef struct Position {
 	int iRow; // Zeile des Elements
