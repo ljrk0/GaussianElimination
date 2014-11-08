@@ -35,6 +35,9 @@ void FreeMatrixMemory(double ** ppMatrix, int iColumns);
 // Fügt zu einem Positionsarray ein Element hinzu und übernimmt dabei die Aufgaben der Speicherverwaltung.
 void AddPosition(POSITION_ARRAY * posArray, POSITION posPositionToAdd);
 
+// Führt eine Betriebsystemspefizische Funktion aus, damit das Programm stoppt, bis der Benutzer die Fortführung bestätigt.
+void WaitForKey();
+
 // Führt den ersten Schritt zur Treppennormalform für eine beliebige Matrix aus. Die Größe der Matrix wird dabei aus den globalen Variablen "iRows" und "iColumns" bestimmt.
 POSITION StepOne(double ** ppMatrix);
 
@@ -63,4 +66,3 @@ int iRowsOffset = 0;
 // In fOut steht ein Stream zur Ausgabedatei der Elementarmatrizen.
 FILE * fOut;
 
-void MyWaitkey();
