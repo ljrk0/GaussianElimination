@@ -206,12 +206,15 @@ void StepTwo(double ** ppMatrix, POSITION posPivot)
 	if(posPivot.iColumn == 0) {
 		return;
 	}
-	double * pTemp = ppMatrix[posPivot.iColumn];
 
-	ppMatrix[posPivot.iColumn] = ppMatrix[0];
-	ppMatrix[0] = pTemp;
+	// Zeilen posPivot und 0 tauschen
+	for(int i = 0; i < iColumns; i++) {
+		double tmp = ppMatrix[i][0];
+		ppMatrix[i][0] = ppMatrix[i][posPivot.iRow];
+		ppMatrix[i][posPivot.iRow] = tmp;
+	}
 
-	fprintf(fOut, "Füge Elementarmatrix an: T[%d,%d]\n", posPivot.iColumn + iColumnsOffset, 1 + iRowsOffset);
+	fprintf(fOut, "Füge Elementarmatrix an: T[%d,%d]\n", posPivot.iRow + 1 + iRowsOffset, 1 + iRowsOffset);
 }
 
 void StepThree(double ** ppMatrix, POSITION posPivot)
