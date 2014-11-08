@@ -7,7 +7,7 @@ int main(int argc, char argv[])
 	if(ppMatrix == NULL) {
 		printf("Error while reading matrix. Terminate programm. / Fehler beim Einlesen der Matrix. Beende Programm.\n");
 		//system("pause");
-		MyWaitkey();
+		WaitForKey();
 		return 0;
 	}
 
@@ -18,7 +18,7 @@ int main(int argc, char argv[])
 	if(posPivot.iColumn == -1) {
 		printf("Fettig. Nix zu tun.\n");
 		//system("pause");
-		MyWaitkey();
+		WaitForKey();
 		return 0;
 	}
 
@@ -40,14 +40,18 @@ int main(int argc, char argv[])
 	printf("\nFertig - ");
 	PrintMatrix(ppMatrix);
 	//system("pause");
-	MyWaitkey();
+	WaitForKey();
 	FreeMatrixMemory(ppMatrix, iColumns);
 	return 0;
 }
 
 double ** ReadMatrix()
 {
+#ifdef _WIN32
+	printf("Wollen Sie die Matrix aus einer Datei laden oder \x81 \bber den Bildschirm eingeben? [Datei/Bildschirm]\n");
+#else
 	printf("Wollen Sie die Matrix aus einer Datei laden oder über den Bildschirm eingeben? [Datei/Bildschirm]\n");
+#endif
 	printf("  ");
 	char answer[100];
 	scanf("%s", answer);
@@ -75,7 +79,11 @@ double ** ReadMatrix()
 		fOut = fopen(answer3, "w");
 
 		if(fOut == NULL) {
+#ifdef _WIN32
 			printf("Fatal Error: Cannot open file: / Fataler Fehler: Kann Datei nicht \x94 \bffnen: %s", answer);
+#else
+			printf("Fatal Error: Cannot open file: / Fataler Fehler: Kann Datei nicht öffnen: %s", answer);
+#endif
 		}
 	} else {
 		fOut = stdout;
@@ -94,7 +102,11 @@ double ** ReadMatrixFromFile()
 
 	// stream überprüfen
 	if(fFile == NULL) {
+#ifdef _WIN32
 		printf("Fatal Error: Cannot open file: / Fataler Fehler: Kann Datei nicht \x94 \bffnen: %s", answer);
+#else
+		printf("Fatal Error: Cannot open file: / Fataler Fehler: Kann Datei nicht öffnen: %s", answer);
+#endif
 		return NULL;
 	}
 
@@ -209,7 +221,7 @@ void StepThree(double ** ppMatrix, POSITION posPivot)
 	if(fElement == 0) {
 		printf("Big error... Error in previous steps. Terminate programm. / Grosser Fehler... Fehler in vorherigen Schritten. Beende Programm.\n");
 		//system("pause");
-		MyWaitkey();
+		WaitForKey();
 		exit(-1);
 	}
 
@@ -348,9 +360,9 @@ void FreeMatrixMemory(double ** ppMatrix, int iMatrixColumns)
 	free(ppMatrix);
 }
 
-void MyWaitkey()
+void WaitForKey()
 {
-#ifdef OS_WINDOWS
+#ifdef _WIN32
 	system("pause");
 #else
 	system("read -n1 -r");
