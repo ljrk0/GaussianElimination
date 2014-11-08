@@ -6,7 +6,8 @@ int main(int argc, char argv[])
 	double ** ppMatrix = ReadMatrix();
 	if(ppMatrix == NULL) {
 		printf("Error while reading matrix. Terminate programm. / Fehler beim Einlesen der Matrix. Beende Programm.\n");
-		system("pause");
+		//system("pause");
+		MyWaitkey();
 		return 0;
 	}
 
@@ -16,7 +17,8 @@ int main(int argc, char argv[])
 	POSITION posPivot = StepOne(ppMatrix);
 	if(posPivot.iColumn == -1) {
 		printf("Fettig. Nix zu tun.\n");
-		system("pause");
+		//system("pause");
+		MyWaitkey();
 		return 0;
 	}
 
@@ -37,14 +39,15 @@ int main(int argc, char argv[])
 	StepSix(ppMatrix, pivots);
 	printf("\nFertig - ");
 	PrintMatrix(ppMatrix);
-	system("pause");
+	//system("pause");
+	MyWaitkey();
 	FreeMatrixMemory(ppMatrix, iColumns);
 	return 0;
 }
 
 double ** ReadMatrix()
 {
-	printf("Wollen Sie die Matrix aus einer Datei laden oder \x81 \bber den Bildschirm eingeben? [Datei/Bildschirm]\n");
+	printf("Wollen Sie die Matrix aus einer Datei laden oder über den Bildschirm eingeben? [Datei/Bildschirm]\n");
 	printf("  ");
 	char answer[100];
 	scanf("%s", answer);
@@ -205,7 +208,8 @@ void StepThree(double ** ppMatrix, POSITION posPivot)
 
 	if(fElement == 0) {
 		printf("Big error... Error in previous steps. Terminate programm. / Grosser Fehler... Fehler in vorherigen Schritten. Beende Programm.\n");
-		system("Pause");
+		//system("pause");
+		MyWaitkey();
 		exit(-1);
 	}
 
@@ -283,7 +287,7 @@ POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot)
 	AddPosition(&pivots, posNewPivot);
 
 	for(int i = 0; i < pivots.iCount; i++) {
-		pivots.pPositions[i].iColumn += posPivot.iColumn + 1; // Auf neue Größe anpassen
+		pivots.pPositions[i].iColumn += posPivot.iColumn + 1; // Auf neue Groesse anpassen
 		pivots.pPositions[i].iRow += 1;
 	}
 
@@ -342,4 +346,13 @@ void FreeMatrixMemory(double ** ppMatrix, int iMatrixColumns)
 		free(ppMatrix[i]);
 	}
 	free(ppMatrix);
+}
+
+void MyWaitkey()
+{
+#ifdef OS_WINDOWS
+	system("pause");
+#else
+	system("read -n1 -r");
+#endif
 }

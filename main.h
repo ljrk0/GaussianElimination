@@ -62,3 +62,5 @@ int iRowsOffset = 0;
 
 // In fOut steht ein Stream zur Ausgabedatei der Elementarmatrizen.
 FILE * fOut;
+
+void MyWaitkey();
