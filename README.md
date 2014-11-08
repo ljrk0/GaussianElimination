@@ -2,12 +2,12 @@ TNF
 ===
 
 main.cpp (Quelltext und Hauptdatei)
-        - Alle benoetigten Funktionen
+        - Alle benötigten Funktionen
         - Main-Funktion
         - Bindet "main.h" ein
 
 main.h (Headerdatei)
-        - Alle benoetigten Includes
+        - Alle benötigten Includes
         - Alle Funktiondeklarationen
         - Alle globalen Variablen
         - Kommentiert
