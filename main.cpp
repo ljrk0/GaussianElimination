@@ -47,7 +47,7 @@ int main(int argc, char argv[])
 
 double ** ReadMatrix()
 {
-#ifdef _WIN32
+#ifdef _USE_WINDOWS_CODE
 	printf("Wollen Sie die Matrix aus einer Datei laden oder \x81 \bber den Bildschirm eingeben? [Datei/Bildschirm]\n");
 #else
 	printf("Wollen Sie die Matrix aus einer Datei laden oder über den Bildschirm eingeben? [Datei/Bildschirm]\n");
@@ -79,7 +79,7 @@ double ** ReadMatrix()
 		fOut = fopen(answer3, "w");
 
 		if(fOut == NULL) {
-#ifdef _WIN32
+#ifdef _USE_WINDOWS_CODE
 			printf("Fatal Error: Cannot open file: / Fataler Fehler: Kann Datei nicht \x94 \bffnen: %s", answer);
 #else
 			printf("Fatal Error: Cannot open file: / Fataler Fehler: Kann Datei nicht öffnen: %s", answer);
@@ -102,7 +102,7 @@ double ** ReadMatrixFromFile()
 
 	// stream überprüfen
 	if(fFile == NULL) {
-#ifdef _WIN32
+#ifdef _USE_WINDOWS_CODE
 		printf("Fatal Error: Cannot open file: / Fataler Fehler: Kann Datei nicht \x94 \bffnen: %s", answer);
 #else
 		printf("Fatal Error: Cannot open file: / Fataler Fehler: Kann Datei nicht öffnen: %s", answer);
@@ -365,9 +365,7 @@ void FreeMatrixMemory(double ** ppMatrix, int iMatrixColumns)
 
 void WaitForKey()
 {
-#ifdef _WIN32
-	system("pause");
-#elif _WIN64
+#ifdef _USE_WINDOWS_CODE
 	system("pause");
 #else
 	system("read -n1 -r");
