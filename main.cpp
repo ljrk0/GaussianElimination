@@ -22,8 +22,7 @@ int main(int argc, char argv[])
 		return 0;
 	}
 
-
-	StepTwo(ppMatrix, posPivot);
+	StepTwo(ppMatrix, &posPivot);
 	printf("\nSchritt 1 & 2 - ");
 	PrintMatrix(ppMatrix);
 	StepThree(ppMatrix, posPivot);
@@ -191,30 +190,34 @@ POSITION StepOne(double ** ppMatrix)
 	POSITION res = {-1,-1};
 	for(int i = 0; i < iColumns; i++) {
 		for(int g = 0; g < iRows; g++) {
-			if(ppMatrix[i][g] != 0.0f) {
+			if(ppMatrix[i][g] > 0.00000001l || ppMatrix[i][g] < -0.00000001l) {
 				res.iRow = g;
 				res.iColumn = i;
 				return res;
+			} else {
+				ppMatrix[i][g] = 0.0f;
 			}
 		}
 	}
 	return res;
 }
 
-void StepTwo(double ** ppMatrix, POSITION posPivot)
+void StepTwo(double ** ppMatrix, POSITION * posPivot)
 {
-	if(posPivot.iColumn == 0) {
+	if(posPivot->iColumn == 0) {
 		return;
 	}
 
 	// Zeilen posPivot und 0 tauschen
 	for(int i = 0; i < iColumns; i++) {
 		double tmp = ppMatrix[i][0];
-		ppMatrix[i][0] = ppMatrix[i][posPivot.iRow];
-		ppMatrix[i][posPivot.iRow] = tmp;
+		ppMatrix[i][0] = ppMatrix[i][posPivot->iRow];
+		ppMatrix[i][posPivot->iRow] = tmp;
 	}
 
-	fprintf(fOut, "Füge Elementarmatrix an: T[%d,%d]\n", posPivot.iRow + 1 + iRowsOffset, 1 + iRowsOffset);
+	fprintf(fOut, "Füge Elementarmatrix an: T[%d,%d]\n", posPivot->iRow + 1 + iRowsOffset, 1 + iRowsOffset);
+
+	posPivot->iRow = 0;
 }
 
 void StepThree(double ** ppMatrix, POSITION posPivot)
@@ -239,7 +242,7 @@ void StepFour(double ** ppMatrix, POSITION posPivot)
 	for(int i = 1; i < iRows; i++) {
 		double scale = ppMatrix[posPivot.iColumn][i];
 
-		if(scale == 0.0f) {
+		if(scale < 0.00000001l && scale > -0.00000001l) {
 			continue; // mit nächster Zeile weitermachen
 		}
 
@@ -264,7 +267,7 @@ POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot)
 		return pivots; // Fertig
 	}
 	
-	double ** ppSmallerMatrix = AllocateMatrixMemory(iColumns, iRows);
+	double ** ppSmallerMatrix = AllocateMatrixMemory(iColumns - posPivot.iColumn - 1, iRows - 1);
 
 	for(int i = posPivot.iColumn + 1; i < iColumns; i++) {
 		for(int g = 1; g < iRows; g++) {
@@ -286,7 +289,8 @@ POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot)
 		iColumns = iColumnsSave;
 		return pivots; // Fertig
 	}
-	StepTwo(ppSmallerMatrix, posNewPivot);
+	
+	StepTwo(ppSmallerMatrix, &posNewPivot);
 	//printf("Schritt 1 & 2 - ");
 	//PrintMatrix(ppSmallerMatrix);
 	StepThree(ppSmallerMatrix, posNewPivot);
@@ -331,7 +335,7 @@ void StepSix(double ** ppMatrix, POSITION_ARRAY pivots)
 		for(int g = pivots.pPositions[i].iRow - 1; g >= 0; g--) { // von "unten" (der Matrix) nach "oben" (der Matrix) zählen
 			double scale = ppMatrix[pivots.pPositions[i].iColumn][g];
 
-			if(scale == 0.0f) {
+			if(scale < 0.00000001l && scale > -0.00000001l) {
 				continue; // mit nächster Zeile weitermachen
 			}
 
@@ -339,6 +343,7 @@ void StepSix(double ** ppMatrix, POSITION_ARRAY pivots)
 				ppMatrix[h][g] += - ppMatrix[h][pivots.pPositions[i].iRow] * scale;
 			}
 			fprintf(fOut, "Füge Elementarmatrix an: A[%d,%d](%lf)\n", i + iRowsOffset, 1 + iRowsOffset, -scale);
+			PrintMatrix(ppMatrix);
 		}
 	}
 }
