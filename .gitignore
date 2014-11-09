@@ -35,3 +35,7 @@ Icon
 .Spotlight-V100
 .Trashes
 /Debug/
+
+# eclipse project files
+.settings/
+.cproject
