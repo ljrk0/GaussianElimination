@@ -60,6 +60,18 @@ POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot);
 // Führt den sechsten Schritt zur Treppennormalform für eine beliebige Matrix aus. Die Größe der Matrix wird dabei aus den globalen Variablen "iRows" und "iColumns" bestimmt. Die Funktion verwendet dabei die Position aller Pivotelemente. Diese wurden von StepFive(...) gesammelt.
 void StepSix(double ** ppMatrix, POSITION_ARRAY pposPivots);
 
+// Multipliziert an die Matrix "Matrix" die Matrix "MatrixToAdd" von Rechts heran.
+void RightAddMultiply(double ** ppMatrix, double ** ppMatrixToAdd);
+
+// Erstellt eine P-Matrix
+void CreateExcangcheMatrix(double ** ppMatrixBuffer, int iRow1, int iRow2);
+
+// Erstellt eine M-Matrix
+void CreateScaleMatrix(double ** ppMatrixBuffer, int iRow, double fScale);
+
+// Erstellt eine G-Matrix
+void CreateGaussMatrix(double ** ppMatrixBuufer, int iRow1, int iRow2, double fScale);
+
 // In iColumns und iRows steht die Spalten- bzw. Zeilenanzahl der aktuell bearbeiteten Matrix
 int iColumns, iRows;
 
