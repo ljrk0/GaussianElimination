@@ -12,6 +12,7 @@ int main(int argc, char argv[])
 	}
 
 	double ** ppSMatrix = AllocateMatrixMemory(iRows, iRows);
+	CreateIdentityMatrix(ppSMatrix);
 
 	printf("Eingelesen - ");
 	PrintMatrix(ppMatrix);
@@ -24,20 +25,20 @@ int main(int argc, char argv[])
 		return 0;
 	}
 
-	StepTwo(ppMatrix, &posPivot);
+	StepTwo(ppMatrix, &posPivot, ppSMatrix);
 	printf("\nSchritt 1 & 2 - ");
 	PrintMatrix(ppMatrix);
-	StepThree(ppMatrix, posPivot);
+	StepThree(ppMatrix, posPivot, ppSMatrix);
 	printf("\nSchritt 3 - ");
 	PrintMatrix(ppMatrix);
-	StepFour(ppMatrix, posPivot);
+	StepFour(ppMatrix, posPivot, ppSMatrix);
 	printf("\nSchritt 4 - ");
 	PrintMatrix(ppMatrix);
-	POSITION_ARRAY pivots = StepFive(ppMatrix, posPivot);
+	POSITION_ARRAY pivots = StepFive(ppMatrix, posPivot, ppSMatrix);
 	printf("\nSchritt 5 - ");
 	PrintMatrix(ppMatrix);
 	AddPosition(&pivots, posPivot);
-	StepSix(ppMatrix, pivots);
+	StepSix(ppMatrix, pivots, ppSMatrix);
 	printf("\nFertig - ");
 	PrintMatrix(ppMatrix);
 	//system("pause");
@@ -133,6 +134,9 @@ double ** ReadMatrixFromFile()
 				pos++;
 			}
 			ppMatrix[g][i] = atof(var);
+			for(int l = 0; l < 1000; l++) {
+				var[l] = '\0';
+			}
 		}
 	}
 
@@ -204,7 +208,7 @@ POSITION StepOne(double ** ppMatrix)
 	return res;
 }
 
-void StepTwo(double ** ppMatrix, POSITION * posPivot)
+void StepTwo(double ** ppMatrix, POSITION * posPivot, double ** ppSMatrix)
 {
 	if(posPivot->iColumn == 0) {
 		return;
@@ -218,11 +222,26 @@ void StepTwo(double ** ppMatrix, POSITION * posPivot)
 	}
 
 	fprintf(fOut, "Füge Elementarmatrix an: P[%d,%d]\n", posPivot->iRow + 1 + iRowsOffset, 1 + iRowsOffset);
+	double ** ppElementaryMatrix = AllocateMatrixMemory(iRows + iRowsOffset, iRows + iRowsOffset);
+	CreatePermutateMatrix(ppElementaryMatrix, posPivot->iRow + iRowsOffset, iRowsOffset);
+	RightAddMultiply(ppSMatrix, ppElementaryMatrix);
+	printf("S - Print Matrix\n");
+	for(int i = 0; i < iRows + iRowsOffset; i++) {
+		for(int g = 0; g < iRows + iRowsOffset; g++) {
+			printf("%lf", ppSMatrix[g][i]);
+			if(g == iRows + iRowsOffset - 1) { // Letzte Spalte 
+				printf("\n"); // Auf neue Zeile wechseln
+			} else {
+				printf(";"); // Trennzeichen ausgeben
+			}
+		}
+	}
+	printf("\n");
 
 	posPivot->iRow = 0;
 }
 
-void StepThree(double ** ppMatrix, POSITION posPivot)
+void StepThree(double ** ppMatrix, POSITION posPivot, double ** ppSMatrix)
 {
 	double fElement = ppMatrix[posPivot.iColumn][0];
 
@@ -237,9 +256,24 @@ void StepThree(double ** ppMatrix, POSITION posPivot)
 		ppMatrix[i][0] *= (1.0f / fElement);
 	}
 	fprintf(fOut, "Füge Elementarmatrix an: M[%d](%lf)\n", 1 + iRowsOffset, 1.0f / fElement);
+	double ** ppElementaryMatrix = AllocateMatrixMemory(iRows + iRowsOffset, iRows + iRowsOffset);
+	CreateScaleMatrix(ppElementaryMatrix, iRowsOffset, 1.0f / fElement);
+	RightAddMultiply(ppSMatrix, ppElementaryMatrix);
+	printf("S - Print Matrix\n");
+	for(int i = 0; i < iRows + iRowsOffset; i++) {
+		for(int g = 0; g < iRows + iRowsOffset; g++) {
+			printf("%lf", ppSMatrix[g][i]);
+			if(g == iRows + iRowsOffset - 1) { // Letzte Spalte 
+				printf("\n"); // Auf neue Zeile wechseln
+			} else {
+				printf(";"); // Trennzeichen ausgeben
+			}
+		}
+	}
+	printf("\n");
 }
 
-void StepFour(double ** ppMatrix, POSITION posPivot)
+void StepFour(double ** ppMatrix, POSITION posPivot, double ** ppSMatrix)
 {
 	for(int i = 1; i < iRows; i++) {
 		double scale = ppMatrix[posPivot.iColumn][i];
@@ -251,11 +285,27 @@ void StepFour(double ** ppMatrix, POSITION posPivot)
 		for(int g = 0; g < iColumns; g++) {
 			ppMatrix[g][i] += - ppMatrix[g][0] * scale;
 		}
-		fprintf(fOut, "Füge Elementarmatrix an: G[%d,%d](%lf)\n", i + iRowsOffset, 1 + iRowsOffset, -scale);
+		fprintf(fOut, "Füge Elementarmatrix an: G[%d,%d](%lf)\n", 1 + i + iRowsOffset, 1 + iRowsOffset, -scale);
+		
+		double ** ppElementaryMatrix = AllocateMatrixMemory(iRows + iRowsOffset, iRows + iRowsOffset);
+		CreateGaussMatrix(ppElementaryMatrix, i + iRowsOffset, iRowsOffset, -scale);
+		RightAddMultiply(ppSMatrix, ppElementaryMatrix);
+		printf("S - Print Matrix\n");
+		for(int i = 0; i < iRows + iRowsOffset; i++) {
+			for(int g = 0; g < iRows + iRowsOffset; g++) {
+				printf("%lf", ppSMatrix[g][i]);
+				if(g == iRows + iRowsOffset - 1) { // Letzte Spalte 
+					printf("\n"); // Auf neue Zeile wechseln
+				} else {
+					printf(";"); // Trennzeichen ausgeben
+				}
+			}
+		}
+		printf("\n");
 	}
 }
 
-POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot)
+POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot, double ** ppSMatrix)
 {
 	POSITION_ARRAY pivots = {NULL, 0};
 	int iRowsSave = iRows;
@@ -292,16 +342,16 @@ POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot)
 		return pivots; // Fertig
 	}
 	
-	StepTwo(ppSmallerMatrix, &posNewPivot);
+	StepTwo(ppSmallerMatrix, &posNewPivot, ppSMatrix);
 	//printf("Schritt 1 & 2 - ");
 	//PrintMatrix(ppSmallerMatrix);
-	StepThree(ppSmallerMatrix, posNewPivot);
+	StepThree(ppSmallerMatrix, posNewPivot, ppSMatrix);
 	//printf("Schritt 3 - ");
 	//PrintMatrix(ppSmallerMatrix);
-	StepFour(ppSmallerMatrix, posNewPivot);
+	StepFour(ppSmallerMatrix, posNewPivot, ppSMatrix);
 	//printf("Schritt 4 - ");
 	//PrintMatrix(ppSmallerMatrix);
-	pivots = StepFive(ppSmallerMatrix, posNewPivot);
+	pivots = StepFive(ppSmallerMatrix, posNewPivot, ppSMatrix);
 	//printf("Schritt 5 - ");
 	//PrintMatrix(ppSmallerMatrix);
 
@@ -315,7 +365,7 @@ POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot)
 	// Rücksetzen
 	iRowsOffset -= (iRowsSave - iRows);
 	iRows = iRowsSave;
-	iRowsOffset -= (iColumnsSave - iColumns);
+	iColumnsOffset -= (iColumnsSave - iColumns);
 	iColumns = iColumnsSave;
 
 	// Eingruppieren der neuen Matrix
@@ -331,7 +381,7 @@ POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot)
 	return pivots;
 }
 
-void StepSix(double ** ppMatrix, POSITION_ARRAY pivots)
+void StepSix(double ** ppMatrix, POSITION_ARRAY pivots, double ** ppSMatrix)
 {
 	for(int i = 0; i < pivots.iCount; i++) {
 		for(int g = pivots.pPositions[i].iRow - 1; g >= 0; g--) { // von "unten" (der Matrix) nach "oben" (der Matrix) zählen
@@ -344,8 +394,23 @@ void StepSix(double ** ppMatrix, POSITION_ARRAY pivots)
 			for(int h = 0; h < iColumns; h++) {
 				ppMatrix[h][g] += - ppMatrix[h][pivots.pPositions[i].iRow] * scale;
 			}
-			fprintf(fOut, "Füge Elementarmatrix an: A[%d,%d](%lf)\n", i + iRowsOffset, 1 + iRowsOffset, -scale);
-			PrintMatrix(ppMatrix);
+			fprintf(fOut, "Füge Elementarmatrix an: G[%d,%d](%lf)\n", 1 + i + iRowsOffset, 1 + iRowsOffset, -scale);
+
+			double ** ppElementaryMatrix = AllocateMatrixMemory(iRows + iRowsOffset, iRows + iRowsOffset);
+			CreateGaussMatrix(ppElementaryMatrix, i + iRowsOffset, iRowsOffset, -scale);
+			RightAddMultiply(ppSMatrix, ppElementaryMatrix);
+			printf("S - Print Matrix\n");
+			for(int i = 0; i < iRows + iRowsOffset; i++) {
+				for(int g = 0; g < iRows + iRowsOffset; g++) {
+					printf("%lf", ppSMatrix[g][i]);
+					if(g == iRows + iRowsOffset - 1) { // Letzte Spalte 
+						printf("\n"); // Auf neue Zeile wechseln
+					} else {
+						printf(";"); // Trennzeichen ausgeben
+					}
+				}
+			}
+			printf("\n");
 		}
 	}
 }
@@ -381,26 +446,39 @@ void WaitForKey()
 
 void RightAddMultiply(double ** ppMatrix, double ** ppMatrixToAdd)
 {
-	double ** ppResult = AllocateMatrixMemory(iRows, iRows);
+	double ** ppResult = AllocateMatrixMemory(iRows + iRowsOffset, iRows + iRowsOffset);
 
-	for(int i = 0; i < iRows; i++) { // iRows ist die Anzahl der Zeilen!
-		for(int g = g; g < iRows; g++) { // Aber auch der Spalten! Quadratische Matrix!
+	for(int i = 0; i < iRows + iRowsOffset; i++) { // iRows ist die Anzahl der Zeilen!
+		for(int g = 0; g < iRows + iRowsOffset; g++) { // Aber auch der Spalten! Quadratische Matrix!
 			double fErg = 0.0f;
-			for(int h = 0; h < iRows; h++) {
-				fErg += ppMatrix[h][i] * ppMatrix[g][h];
+			for(int h = 0; h < iRows + iRowsOffset; h++) {
+				fErg += ppMatrix[h][i] * ppMatrixToAdd[g][h];
 			}
 			ppResult[i][g] = fErg;
 		}
 	}
 
-	FreeMatrixMemory(ppMatrix, iRows);
-	ppMatrix = ppResult;
+	CopyMatrix(ppMatrix, ppResult);
+	FreeMatrixMemory(ppResult, iRows + iRowsOffset);
 }
 
-void CreateExchangeMatrix(double ** ppMatrix, int iRow1, int iRow2)
+void CreateIdentityMatrix(double ** ppMatrixBuffer)
 {
-	for(int i = 0; i < iRows; i++) {
-		for(int g = 0; g < iRows; g++) {
+	for(int i = 0; i < iRows + iRowsOffset; i++) {
+		for(int g = 0; g < iRows + iRowsOffset; g++) {
+			if(g == i) {
+				ppMatrixBuffer[i][g] = 1.0f;
+			} else {
+				ppMatrixBuffer[i][g] = 0.0f;
+			}
+		}
+	}
+}
+
+void CreatePermutateMatrix(double ** ppMatrix, int iRow1, int iRow2)
+{
+	for(int i = 0; i < iRows + iRowsOffset; i++) {
+		for(int g = 0; g < iRows + iRowsOffset; g++) {
 			if(g == i) {
 				ppMatrix[i][g] = 1.0f;
 			} else if(g == iRow1 && i == iRow2) {
@@ -416,9 +494,9 @@ void CreateExchangeMatrix(double ** ppMatrix, int iRow1, int iRow2)
 
 void CreateScaleMatrix(double ** ppMatrix, int iRow, double fScale)
 {
-	for(int i = 0; i < iRows; i++) {
-		for(int g = 0; g < iRows; g++) {
-			if(g == iRow && g == 1) {
+	for(int i = 0; i < iRows + iRowsOffset; i++) {
+		for(int g = 0; g < iRows + iRowsOffset; g++) {
+			if(g == iRow && i == iRow) {
 				ppMatrix[i][g] = fScale;
 			} else if(g == i) {
 				ppMatrix[i][g] = 1.0f;
@@ -429,10 +507,10 @@ void CreateScaleMatrix(double ** ppMatrix, int iRow, double fScale)
 	}
 }
 
-void CreateScaleMatrix(double ** ppMatrix, int iRow1, int iRow2, double fScale)
+void CreateGaussMatrix(double ** ppMatrix, int iRow1, int iRow2, double fScale)
 {
-	for(int i = 0; i < iRows; i++) {
-		for(int g = 0; g < iRows; g++) {
+	for(int i = 0; i < iRows + iRowsOffset; i++) {
+		for(int g = 0; g < iRows + iRowsOffset; g++) {
 			if(g == i) {
 				ppMatrix[i][g] = 1.0f;
 			} else if(g == iRow1 && i == iRow2) {
@@ -440,6 +518,15 @@ void CreateScaleMatrix(double ** ppMatrix, int iRow1, int iRow2, double fScale)
 			} else {
 				ppMatrix[i][g] = 0.0f;
 			}
+		}
+	}
+}
+
+void CopyMatrix(double ** ppBuf, double ** ppIn)
+{
+	for(int i = 0; i < iRows + iRowsOffset; i++) {
+		for(int g = 0; g < iRows + iRowsOffset; g++) {
+			ppBuf[i][g] = ppIn[i][g];
 		}
 	}
 }
