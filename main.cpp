@@ -1,7 +1,7 @@
 #include "main.h"
 
 // Hauptfunktion. Programmaufrufspunkt.
-int main(int argc, char argv[])
+int main(int argc, char * argv[])
 {
 	double ** ppMatrix = ReadMatrix();
 	if(ppMatrix == NULL) {
@@ -66,7 +66,7 @@ double ** ReadMatrix()
 		ppMatrix = ReadMatrixFromInput();
 	}
 
-	printf("Wollen Sie die Elementarmatrizen in eine Datei schreiben oder auf dem Bildschirm ausgeben? [Datei/Bildschrim]\n");
+	printf("Wollen Sie die Elementarmatrizen in eine Datei schreiben oder auf dem Bildschirm ausgeben? [Datei/Bildschirm]\n");
 	printf("  ");
 	char answer2[100];
 	scanf("%s", answer2);
@@ -335,10 +335,10 @@ POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot, double ** ppSMatr
 	POSITION posNewPivot = StepOne(ppSmallerMatrix);
 	if(posNewPivot.iColumn == -1) {
 		// Rücksetzen
-		iRowsOffset -= (iRowsSave - iRows);
-		iRows = iRowsSave;
-		iRowsOffset -= (iColumnsSave - iColumns);
-		iColumns = iColumnsSave;
+		//iRowsOffset -= (iRowsSave - iRows);
+		//iRows = iRowsSave;
+		//iRowsOffset -= (iColumnsSave - iColumns);
+		//iColumns = iColumnsSave;
 		return pivots; // Fertig
 	}
 	
