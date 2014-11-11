@@ -28,7 +28,7 @@ int main(int argc, char * argv[])
 	}
 
 	printf("Eingelesen - ");
-	PrintMatrix(ppMatrix, false);
+	PrintMatrix(ppMatrix, FALSE);
 
 	POSITION posPivot = StepOne(ppMatrix);
 	if(posPivot.iColumn == -1) {
@@ -40,21 +40,21 @@ int main(int argc, char * argv[])
 
 	StepTwo(ppMatrix, &posPivot);
 	printf("\nSchritt 1 & 2 - ");
-	PrintMatrix(ppMatrix, false);
+	PrintMatrix(ppMatrix, FALSE);
 	StepThree(ppMatrix, posPivot);
 	printf("\nSchritt 3 - ");
-	PrintMatrix(ppMatrix, false);
+	PrintMatrix(ppMatrix, FALSE);
 	StepFour(ppMatrix, posPivot);
 	printf("\nSchritt 4 - ");
-	PrintMatrix(ppMatrix, false);
+	PrintMatrix(ppMatrix, FALSE);
 	POSITION_ARRAY pivots = StepFive(ppMatrix, posPivot);
 	printf("\nSchritt 5 - ");
-	PrintMatrix(ppMatrix, false);
+	PrintMatrix(ppMatrix, FALSE);
 	AddPosition(&pivots, posPivot);
 	StepSix(ppMatrix, pivots);
 	printf("\nFertig - ");
-	PrintMatrix(ppMatrix, false);
-	PrintMatrix(ppMatrix, true);
+	PrintMatrix(ppMatrix, FALSE);
+	PrintMatrix(ppMatrix, TRUE);
 	//system("pause");
 	WaitForKey();
 	FreeMatrixMemory(ppMatrix, iColumns);
@@ -178,11 +178,27 @@ double ** ReadMatrixFromInput()
 	return ppMatrix;
 }
 
-void PrintMatrix(double ** ppMatrix, bool bPrintSMatrix)
+void PrintMatrix(double ** ppMatrix, int bPrintSMatrix)
 {
-	printf("Print %sMatrix\n", bPrintSMatrix ? "S-" : "");
+	if(bPrintSMatrix == TRUE) {
+		printf("Print S-Matrix\n");
+	} else {
+		printf("Print Matrix\n");
+	}
 	for(int i = 0; i < iRows; i++) {
-		for(int g = (bPrintSMatrix ? iColumns - iRows : 0); g < (bPrintSMatrix ? iColumns : iColumns - iRows); g++) {
+		int g;
+		if(bPrintSMatrix) {
+			g = iColumns - iRows;
+		} else {
+			g = 0;
+		}
+		int for_end;
+		if(bPrintSMatrix) {
+			for_end = iColumns;
+		} else {
+			for_end = iColumns - iRows;
+		}
+		for( /* g schon gesetzt */; g < for_end /* for_end ist die endbedingung der for-schleife */; g++) {
 			printf("%lf", ppMatrix[g][i]);
 			printf(";"); // Trennzeichen ausgeben
 		}
