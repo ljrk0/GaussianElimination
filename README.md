@@ -11,13 +11,13 @@ Checkout the release section on GitHub:
 
 ## License
 
-to come. probably GPL
+UNLICENSED.
 
 ## Building
 
-No special changes needed to build on Windows or Linux.
+No special changes needed to build on Windows or Linux. The programm is completly C compatible.
 tested with:
- -  Windows: MS Visual C Compiler, Cygwin
+ -  Windows: MS Visual C Compiler, Cygwin, Pelles C Compiler
  -  Linux: Cross GCC
 
 ## Sourcecode
