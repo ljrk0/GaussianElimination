@@ -4,13 +4,6 @@
 int main(int argc, char * argv[])
 {
 	double ** ppMatrix = ReadMatrix();
-	if(ppMatrix == NULL) {
-		printf("Error while reading matrix. Terminate programm. / Fehler beim Einlesen der Matrix. Beende Programm.\n");
-		//system("pause");
-		WaitForKey();
-		return 0;
-	}
-	
 	double ** ppTmpMatrix = AllocateMatrixMemory(iColumns + iRows, iRows);
 
 	iColumns += iRows;
@@ -24,20 +17,18 @@ int main(int argc, char * argv[])
 			}
 		}
 	}
-	
-	for(int i= 0; i < (iColumns - iRows); i++) {
-		for(int g = 0; g < iRows; g++) {
-			ppTmpMatrix[i][g] = ppMatrix[i][g];
-		}
-	}
+	CopyMatrix(ppTmpMatrix, ppMatrix, iRows, iColumns - iRows);
 	ppMatrix = ppTmpMatrix;
 
-
-	double ** ppSMatrix = AllocateMatrixMemory(iRows, iRows);
-	CreateIdentityMatrix(ppSMatrix);
+	if(ppMatrix == NULL) {
+		printf("Error while reading matrix. Terminate programm. / Fehler beim Einlesen der Matrix. Beende Programm.\n");
+		//system("pause");
+		WaitForKey();
+		return 0;
+	}
 
 	printf("Eingelesen - ");
-	PrintMatrix(ppMatrix);
+	PrintMatrix(ppMatrix, false);
 
 	POSITION posPivot = StepOne(ppMatrix);
 	if(posPivot.iColumn == -1) {
@@ -47,22 +38,23 @@ int main(int argc, char * argv[])
 		return 0;
 	}
 
-	StepTwo(ppMatrix, &posPivot, ppSMatrix);
+	StepTwo(ppMatrix, &posPivot);
 	printf("\nSchritt 1 & 2 - ");
-	PrintMatrix(ppMatrix);
-	StepThree(ppMatrix, posPivot, ppSMatrix);
+	PrintMatrix(ppMatrix, false);
+	StepThree(ppMatrix, posPivot);
 	printf("\nSchritt 3 - ");
-	PrintMatrix(ppMatrix);
-	StepFour(ppMatrix, posPivot, ppSMatrix);
+	PrintMatrix(ppMatrix, false);
+	StepFour(ppMatrix, posPivot);
 	printf("\nSchritt 4 - ");
-	PrintMatrix(ppMatrix);
-	POSITION_ARRAY pivots = StepFive(ppMatrix, posPivot, ppSMatrix);
+	PrintMatrix(ppMatrix, false);
+	POSITION_ARRAY pivots = StepFive(ppMatrix, posPivot);
 	printf("\nSchritt 5 - ");
-	PrintMatrix(ppMatrix);
+	PrintMatrix(ppMatrix, false);
 	AddPosition(&pivots, posPivot);
-	StepSix(ppMatrix, pivots, ppSMatrix);
+	StepSix(ppMatrix, pivots);
 	printf("\nFertig - ");
-	PrintMatrix(ppMatrix);
+	PrintMatrix(ppMatrix, false);
+	PrintMatrix(ppMatrix, true);
 	//system("pause");
 	WaitForKey();
 	FreeMatrixMemory(ppMatrix, iColumns);
@@ -186,18 +178,15 @@ double ** ReadMatrixFromInput()
 	return ppMatrix;
 }
 
-void PrintMatrix(double ** ppMatrix)
+void PrintMatrix(double ** ppMatrix, bool bPrintSMatrix)
 {
-	printf("Print Matrix\n");
+	printf("Print %sMatrix\n", bPrintSMatrix ? "S-" : "");
 	for(int i = 0; i < iRows; i++) {
-		for(int g = 0; g < iColumns; g++) {
+		for(int g = (bPrintSMatrix ? iColumns - iRows : 0); g < (bPrintSMatrix ? iColumns : iColumns - iRows); g++) {
 			printf("%lf", ppMatrix[g][i]);
-			if(g == iColumns - 1) { // Letzte Spalte 
-				printf("\n"); // Auf neue Zeile wechseln
-			} else {
-				printf(";"); // Trennzeichen ausgeben
-			}
+			printf(";"); // Trennzeichen ausgeben
 		}
+		printf("\n");
 	}
 	printf("\n");
 }
@@ -230,9 +219,9 @@ POSITION StepOne(double ** ppMatrix)
 	return res;
 }
 
-void StepTwo(double ** ppMatrix, POSITION * posPivot, double ** ppSMatrix)
+void StepTwo(double ** ppMatrix, POSITION * posPivot)
 {
-	if(posPivot->iColumn == 0) {
+	if(posPivot->iRow == 0) {
 		return;
 	}
 
@@ -244,19 +233,16 @@ void StepTwo(double ** ppMatrix, POSITION * posPivot, double ** ppSMatrix)
 	}
 
 	fprintf(fOut, "Füge Elementarmatrix an: P[%d,%d]\n", posPivot->iRow + 1 + iRowsOffset, 1 + iRowsOffset);
-	double ** ppElementaryMatrix = AllocateMatrixMemory(iRows + iRowsOffset, iRows + iRowsOffset);
-	CreatePermutateMatrix(ppElementaryMatrix, posPivot->iRow + iRowsOffset, iRowsOffset);
-	RightAddMultiply(ppSMatrix, ppElementaryMatrix);
 
 	posPivot->iRow = 0;
 }
 
-void StepThree(double ** ppMatrix, POSITION posPivot, double ** ppSMatrix)
+void StepThree(double ** ppMatrix, POSITION posPivot)
 {
 	double fElement = ppMatrix[posPivot.iColumn][0];
 
 	if(fElement == 0) {
-		printf("Fat(al) error... Error in previous steps. Terminate programm. / Fataler Fehler... Fehler in vorherigen Schritten. Beende Programm.\n");
+		printf("Fat(al) error... Error in previous steps. Terminate programm. / Fett(al)er Fehler... Fehler in vorherigen Schritten. Beende Programm.\n");
 		//system("pause");
 		WaitForKey();
 		exit(-1);
@@ -266,12 +252,9 @@ void StepThree(double ** ppMatrix, POSITION posPivot, double ** ppSMatrix)
 		ppMatrix[i][0] *= (1.0f / fElement);
 	}
 	fprintf(fOut, "Füge Elementarmatrix an: M[%d](%lf)\n", 1 + iRowsOffset, 1.0f / fElement);
-	double ** ppElementaryMatrix = AllocateMatrixMemory(iRows + iRowsOffset, iRows + iRowsOffset);
-	CreateScaleMatrix(ppElementaryMatrix, iRowsOffset, 1.0f / fElement);
-	RightAddMultiply(ppSMatrix, ppElementaryMatrix);
 }
 
-void StepFour(double ** ppMatrix, POSITION posPivot, double ** ppSMatrix)
+void StepFour(double ** ppMatrix, POSITION posPivot)
 {
 	for(int i = 1; i < iRows; i++) {
 		double scale = ppMatrix[posPivot.iColumn][i];
@@ -284,14 +267,10 @@ void StepFour(double ** ppMatrix, POSITION posPivot, double ** ppSMatrix)
 			ppMatrix[g][i] += - ppMatrix[g][0] * scale;
 		}
 		fprintf(fOut, "Füge Elementarmatrix an: G[%d,%d](%lf)\n", 1 + i + iRowsOffset, 1 + iRowsOffset, -scale);
-		
-		double ** ppElementaryMatrix = AllocateMatrixMemory(iRows + iRowsOffset, iRows + iRowsOffset);
-		CreateGaussMatrix(ppElementaryMatrix, i + iRowsOffset, iRowsOffset, -scale);
-		RightAddMultiply(ppSMatrix, ppElementaryMatrix);
 	}
 }
 
-POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot, double ** ppSMatrix)
+POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot)
 {
 	POSITION_ARRAY pivots = {NULL, 0};
 	int iRowsSave = iRows;
@@ -321,30 +300,30 @@ POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot, double ** ppSMatr
 	POSITION posNewPivot = StepOne(ppSmallerMatrix);
 	if(posNewPivot.iColumn == -1) {
 		// Rücksetzen
-		//iRowsOffset -= (iRowsSave - iRows);
-		//iRows = iRowsSave;
-		//iRowsOffset -= (iColumnsSave - iColumns);
-		//iColumns = iColumnsSave;
+//		iRowsOffset -= (iRowsSave - iRows);
+//		iRows = iRowsSave;
+//		iRowsOffset -= (iColumnsSave - iColumns);
+//		iColumns = iColumnsSave;
 		return pivots; // Fertig
 	}
 	
-	StepTwo(ppSmallerMatrix, &posNewPivot, ppSMatrix);
+	StepTwo(ppSmallerMatrix, &posNewPivot);
 	//printf("Schritt 1 & 2 - ");
 	//PrintMatrix(ppSmallerMatrix);
-	StepThree(ppSmallerMatrix, posNewPivot, ppSMatrix);
+	StepThree(ppSmallerMatrix, posNewPivot);
 	//printf("Schritt 3 - ");
 	//PrintMatrix(ppSmallerMatrix);
-	StepFour(ppSmallerMatrix, posNewPivot, ppSMatrix);
+	StepFour(ppSmallerMatrix, posNewPivot);
 	//printf("Schritt 4 - ");
 	//PrintMatrix(ppSmallerMatrix);
-	pivots = StepFive(ppSmallerMatrix, posNewPivot, ppSMatrix);
+	pivots = StepFive(ppSmallerMatrix, posNewPivot);
 	//printf("Schritt 5 - ");
 	//PrintMatrix(ppSmallerMatrix);
 
 	AddPosition(&pivots, posNewPivot);
 
 	for(int i = 0; i < pivots.iCount; i++) {
-		pivots.pPositions[i].iColumn += posPivot.iColumn + 1; // Auf neue Größe anpassen
+		pivots.pPositions[i].iColumn += posPivot.iColumn + 1; // Auf neue Grösse anpassen
 		pivots.pPositions[i].iRow += 1;
 	}
 
@@ -367,7 +346,7 @@ POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot, double ** ppSMatr
 	return pivots;
 }
 
-void StepSix(double ** ppMatrix, POSITION_ARRAY pivots, double ** ppSMatrix)
+void StepSix(double ** ppMatrix, POSITION_ARRAY pivots)
 {
 	for(int i = 0; i < pivots.iCount; i++) {
 		for(int g = pivots.pPositions[i].iRow - 1; g >= 0; g--) { // von "unten" (der Matrix) nach "oben" (der Matrix) zählen
@@ -381,10 +360,6 @@ void StepSix(double ** ppMatrix, POSITION_ARRAY pivots, double ** ppSMatrix)
 				ppMatrix[h][g] += - ppMatrix[h][pivots.pPositions[i].iRow] * scale;
 			}
 			fprintf(fOut, "Füge Elementarmatrix an: G[%d,%d](%lf)\n", 1 + i + iRowsOffset, 1 + iRowsOffset, -scale);
-
-			double ** ppElementaryMatrix = AllocateMatrixMemory(iRows + iRowsOffset, iRows + iRowsOffset);
-			CreateGaussMatrix(ppElementaryMatrix, i + iRowsOffset, iRowsOffset, -scale);
-			RightAddMultiply(ppSMatrix, ppElementaryMatrix);
 		}
 	}
 }
@@ -418,98 +393,10 @@ void WaitForKey()
 #endif
 }
 
-void RightAddMultiply(double ** ppMatrix, double ** ppMatrixToAdd)
+void CopyMatrix(double ** ppBuf, double ** ppIn, int iRowsToCopy, int iColumnsToCopy)
 {
-	double ** ppResult = AllocateMatrixMemory(iRows + iRowsOffset, iRows + iRowsOffset);
-
-	for(int i = 0; i < iRows + iRowsOffset; i++) { // iRows ist die Anzahl der Zeilen!
-		for(int g = 0; g < iRows + iRowsOffset; g++) { // Aber auch der Spalten! Quadratische Matrix!
-			double fErg = 0.0f;
-			for(int h = 0; h < iRows + iRowsOffset; h++) {
-				fErg += ppMatrixToAdd[h][g] * ppMatrix[i][h];
-			}
-			ppResult[i][g] = fErg;
-		}
-	}
-
-	CopyMatrix(ppMatrix, ppResult);
-	FreeMatrixMemory(ppResult, iRows + iRowsOffset);
-}
-
-void CreateIdentityMatrix(double ** ppMatrixBuffer)
-{
-	for(int i = 0; i < iRows + iRowsOffset; i++) {
-		for(int g = 0; g < iRows + iRowsOffset; g++) {
-			if(g == iRow1 && i == iRow2) {
-				ppMatrix[i][g] = 1.0f;
-			} else if(g == iRow2 && i == iRow1) {
-				ppMatrix[i][g] = 1.0f;
-			} else if(g == iRow1 && i == iRow1) {
-				ppMatrix[i][g] = 0.0f;
-			} else if(g == iRow2 && i == iRow2) {
-				ppMatrix[i][g] = 0.0f;
-			} else if(g == i) {
-				ppMatrix[i][g] = 1.0f;
-			} else {
-				ppMatrix[i][g] = 0.0f;
-			}
-		}
-	}
-		}
-	}
-}
-
-void CreatePermutateMatrix(double ** ppMatrix, int iRow1, int iRow2)
-{
-	for(int i = 0; i < iRows + iRowsOffset; i++) {
-		for(int g = 0; g < iRows + iRowsOffset; g++) {
-			if(g == i) {
-				ppMatrix[i][g] = 1.0f;
-			} else if(g == iRow1 && i == iRow2) {
-				ppMatrix[i][g] = 1.0f;
-			} else if(g == iRow2 && i == iRow1) {
-				ppMatrix[i][g] = 1.0f;
-			} else {
-				ppMatrix[i][g] = 0.0f;
-			}
-		}
-	}
-}
-
-void CreateScaleMatrix(double ** ppMatrix, int iRow, double fScale)
-{
-	for(int i = 0; i < iRows + iRowsOffset; i++) {
-		for(int g = 0; g < iRows + iRowsOffset; g++) {
-			if(g == iRow && i == iRow) {
-				ppMatrix[i][g] = fScale;
-			} else if(g == i) {
-				ppMatrix[i][g] = 1.0f;
-			} else {
-				ppMatrix[i][g] = 0.0f;
-			}
-		}
-	}
-}
-
-void CreateGaussMatrix(double ** ppMatrix, int iRow1, int iRow2, double fScale)
-{
-	for(int i = 0; i < iRows + iRowsOffset; i++) {
-		for(int g = 0; g < iRows + iRowsOffset; g++) {
-			if(g == iRow1 && i == iRow2) {
-				ppMatrix[i][g] = fScale;
-			} else if(g == i) {
-				ppMatrix[i][g] = 1.0f;
-			} else {
-				ppMatrix[i][g] = 0.0f;
-			}
-		}
-	}
-}
-
-void CopyMatrix(double ** ppBuf, double ** ppIn)
-{
-	for(int i = 0; i < iRows + iRowsOffset; i++) {
-		for(int g = 0; g < iRows + iRowsOffset; g++) {
+	for(int i = 0; i < iRowsToCopy; i++) {
+		for(int g = 0; g < iColumnsToCopy; g++) {
 			ppBuf[i][g] = ppIn[i][g];
 		}
 	}
