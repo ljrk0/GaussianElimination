@@ -6,6 +6,9 @@
 #define _USE_WINDOWS_CODE
 #endif
 
+#define TRUE 1
+#define FALSE 0
+
 // Diese Struktur ist dafür zuständig, eine bleliebige Position in einer Matrix zu speichern
 typedef struct Position {
 	int iRow; // Zeile des Elements
@@ -28,7 +31,7 @@ double ** ReadMatrixFromFile();
 double ** ReadMatrixFromInput();
 
 // Gibt eine Matrix auf dem Bildschirm aus.
-void PrintMatrix(double ** ppMatrix, bool bPrintSMatrix);
+void PrintMatrix(double ** ppMatrix, int bPrintSMatrix);
 
 // Reserviert den Speicher für eine Matrix
 double ** AllocateMatrixMemory(int iColumns, int iRows);
