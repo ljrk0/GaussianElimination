@@ -10,6 +10,28 @@ int main(int argc, char * argv[])
 		WaitForKey();
 		return 0;
 	}
+	
+	double ** ppTmpMatrix = AllocateMatrixMemory(iColumns + iRows, iRows);
+
+	iColumns += iRows;
+	for(int i = (iColumns - iRows); i < iColumns; i++) {
+		for(int g = 0; g < iRows; g++) {
+			if(g == i - iColumns + iRows) {
+				ppTmpMatrix[i][g] = 1.0f;
+
+			} else {
+				ppTmpMatrix[i][g] = 0.0f;
+			}
+		}
+	}
+	
+	for(int i= 0; i < (iColumns - iRows); i++) {
+		for(int g = 0; g < iRows; g++) {
+			ppTmpMatrix[i][g] = ppMatrix[i][g];
+		}
+	}
+	ppMatrix = ppTmpMatrix;
+
 
 	double ** ppSMatrix = AllocateMatrixMemory(iRows, iRows);
 	CreateIdentityMatrix(ppSMatrix);
@@ -60,7 +82,7 @@ double ** ReadMatrix()
 	fflush(stdin);
 
 	double ** ppMatrix;
-	if(strcmp(answer, "Datei") == 0) {
+	if(strcmp(answer, "Datei") == 0 || strcmp(answer, "D") == 0) {
 		ppMatrix = ReadMatrixFromFile();
 	} else {
 		ppMatrix = ReadMatrixFromInput();
@@ -225,18 +247,6 @@ void StepTwo(double ** ppMatrix, POSITION * posPivot, double ** ppSMatrix)
 	double ** ppElementaryMatrix = AllocateMatrixMemory(iRows + iRowsOffset, iRows + iRowsOffset);
 	CreatePermutateMatrix(ppElementaryMatrix, posPivot->iRow + iRowsOffset, iRowsOffset);
 	RightAddMultiply(ppSMatrix, ppElementaryMatrix);
-	printf("S - Print Matrix\n");
-	for(int i = 0; i < iRows + iRowsOffset; i++) {
-		for(int g = 0; g < iRows + iRowsOffset; g++) {
-			printf("%lf", ppSMatrix[g][i]);
-			if(g == iRows + iRowsOffset - 1) { // Letzte Spalte 
-				printf("\n"); // Auf neue Zeile wechseln
-			} else {
-				printf(";"); // Trennzeichen ausgeben
-			}
-		}
-	}
-	printf("\n");
 
 	posPivot->iRow = 0;
 }
@@ -246,7 +256,7 @@ void StepThree(double ** ppMatrix, POSITION posPivot, double ** ppSMatrix)
 	double fElement = ppMatrix[posPivot.iColumn][0];
 
 	if(fElement == 0) {
-		printf("Big error... Error in previous steps. Terminate programm. / Grosser Fehler... Fehler in vorherigen Schritten. Beende Programm.\n");
+		printf("Fat(al) error... Error in previous steps. Terminate programm. / Fataler Fehler... Fehler in vorherigen Schritten. Beende Programm.\n");
 		//system("pause");
 		WaitForKey();
 		exit(-1);
@@ -259,18 +269,6 @@ void StepThree(double ** ppMatrix, POSITION posPivot, double ** ppSMatrix)
 	double ** ppElementaryMatrix = AllocateMatrixMemory(iRows + iRowsOffset, iRows + iRowsOffset);
 	CreateScaleMatrix(ppElementaryMatrix, iRowsOffset, 1.0f / fElement);
 	RightAddMultiply(ppSMatrix, ppElementaryMatrix);
-	printf("S - Print Matrix\n");
-	for(int i = 0; i < iRows + iRowsOffset; i++) {
-		for(int g = 0; g < iRows + iRowsOffset; g++) {
-			printf("%lf", ppSMatrix[g][i]);
-			if(g == iRows + iRowsOffset - 1) { // Letzte Spalte 
-				printf("\n"); // Auf neue Zeile wechseln
-			} else {
-				printf(";"); // Trennzeichen ausgeben
-			}
-		}
-	}
-	printf("\n");
 }
 
 void StepFour(double ** ppMatrix, POSITION posPivot, double ** ppSMatrix)
@@ -290,18 +288,6 @@ void StepFour(double ** ppMatrix, POSITION posPivot, double ** ppSMatrix)
 		double ** ppElementaryMatrix = AllocateMatrixMemory(iRows + iRowsOffset, iRows + iRowsOffset);
 		CreateGaussMatrix(ppElementaryMatrix, i + iRowsOffset, iRowsOffset, -scale);
 		RightAddMultiply(ppSMatrix, ppElementaryMatrix);
-		printf("S - Print Matrix\n");
-		for(int i = 0; i < iRows + iRowsOffset; i++) {
-			for(int g = 0; g < iRows + iRowsOffset; g++) {
-				printf("%lf", ppSMatrix[g][i]);
-				if(g == iRows + iRowsOffset - 1) { // Letzte Spalte 
-					printf("\n"); // Auf neue Zeile wechseln
-				} else {
-					printf(";"); // Trennzeichen ausgeben
-				}
-			}
-		}
-		printf("\n");
 	}
 }
 
@@ -358,7 +344,7 @@ POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot, double ** ppSMatr
 	AddPosition(&pivots, posNewPivot);
 
 	for(int i = 0; i < pivots.iCount; i++) {
-		pivots.pPositions[i].iColumn += posPivot.iColumn + 1; // Auf neue Groesse anpassen
+		pivots.pPositions[i].iColumn += posPivot.iColumn + 1; // Auf neue Größe anpassen
 		pivots.pPositions[i].iRow += 1;
 	}
 
@@ -399,18 +385,6 @@ void StepSix(double ** ppMatrix, POSITION_ARRAY pivots, double ** ppSMatrix)
 			double ** ppElementaryMatrix = AllocateMatrixMemory(iRows + iRowsOffset, iRows + iRowsOffset);
 			CreateGaussMatrix(ppElementaryMatrix, i + iRowsOffset, iRowsOffset, -scale);
 			RightAddMultiply(ppSMatrix, ppElementaryMatrix);
-			printf("S - Print Matrix\n");
-			for(int i = 0; i < iRows + iRowsOffset; i++) {
-				for(int g = 0; g < iRows + iRowsOffset; g++) {
-					printf("%lf", ppSMatrix[g][i]);
-					if(g == iRows + iRowsOffset - 1) { // Letzte Spalte 
-						printf("\n"); // Auf neue Zeile wechseln
-					} else {
-						printf(";"); // Trennzeichen ausgeben
-					}
-				}
-			}
-			printf("\n");
 		}
 	}
 }
@@ -452,7 +426,7 @@ void RightAddMultiply(double ** ppMatrix, double ** ppMatrixToAdd)
 		for(int g = 0; g < iRows + iRowsOffset; g++) { // Aber auch der Spalten! Quadratische Matrix!
 			double fErg = 0.0f;
 			for(int h = 0; h < iRows + iRowsOffset; h++) {
-				fErg += ppMatrix[h][i] * ppMatrixToAdd[g][h];
+				fErg += ppMatrixToAdd[h][g] * ppMatrix[i][h];
 			}
 			ppResult[i][g] = fErg;
 		}
@@ -466,11 +440,21 @@ void CreateIdentityMatrix(double ** ppMatrixBuffer)
 {
 	for(int i = 0; i < iRows + iRowsOffset; i++) {
 		for(int g = 0; g < iRows + iRowsOffset; g++) {
-			if(g == i) {
-				ppMatrixBuffer[i][g] = 1.0f;
+			if(g == iRow1 && i == iRow2) {
+				ppMatrix[i][g] = 1.0f;
+			} else if(g == iRow2 && i == iRow1) {
+				ppMatrix[i][g] = 1.0f;
+			} else if(g == iRow1 && i == iRow1) {
+				ppMatrix[i][g] = 0.0f;
+			} else if(g == iRow2 && i == iRow2) {
+				ppMatrix[i][g] = 0.0f;
+			} else if(g == i) {
+				ppMatrix[i][g] = 1.0f;
 			} else {
-				ppMatrixBuffer[i][g] = 0.0f;
+				ppMatrix[i][g] = 0.0f;
 			}
+		}
+	}
 		}
 	}
 }
@@ -511,10 +495,10 @@ void CreateGaussMatrix(double ** ppMatrix, int iRow1, int iRow2, double fScale)
 {
 	for(int i = 0; i < iRows + iRowsOffset; i++) {
 		for(int g = 0; g < iRows + iRowsOffset; g++) {
-			if(g == i) {
-				ppMatrix[i][g] = 1.0f;
-			} else if(g == iRow1 && i == iRow2) {
+			if(g == iRow1 && i == iRow2) {
 				ppMatrix[i][g] = fScale;
+			} else if(g == i) {
+				ppMatrix[i][g] = 1.0f;
 			} else {
 				ppMatrix[i][g] = 0.0f;
 			}
