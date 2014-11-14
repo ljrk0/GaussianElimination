@@ -3,22 +3,47 @@
 // Hauptfunktion. Programmaufrufspunkt.
 int main(int argc, char * argv[])
 {
-	double ** ppMatrix = ReadMatrix();
-	double ** ppTmpMatrix = AllocateMatrixMemory(iColumns + iRows, iRows);
+	PARSE_RESULT pr = ParseArguments(argc, argv);
 
-	iColumns += iRows;
-	for(int i = (iColumns - iRows); i < iColumns; i++) {
-		for(int g = 0; g < iRows; g++) {
-			if(g == i - iColumns + iRows) {
-				ppTmpMatrix[i][g] = 1.0f;
+	bImmediateExit = pr.bImmediateExit;
+	bNoSCalculation = pr.bNoSCalculation;
 
-			} else {
-				ppTmpMatrix[i][g] = 0.0f;
-			}
+	if(pr.bPrintHelp) {
+		PrintHelp();
+		WaitForKey();
+		return 0;
+	}
+
+	if(pr.bUseScript) {
+		FILE * fTest = fopen(pr.sScriptFileName, "r");
+		if(fTest == NULL) {
+			printf("Can't open script file! Expect input on normal mode. / Kann die Script-Datei nicht öffnen! Erwarte Eingabe auf normalem Weg");
+		} else {
+			fclose(fTest);
+			freopen(pr.sScriptFileName, "r", stdin);
 		}
 	}
-	CopyMatrix(ppTmpMatrix, ppMatrix, iRows, iColumns - iRows);
-	ppMatrix = ppTmpMatrix;
+
+	double ** ppMatrix = ReadMatrix();
+	
+
+	if(!pr.bNoSCalculation) {
+		iColumns += iRows;
+		double ** ppTmpMatrix = AllocateMatrixMemory(iColumns + iRows, iRows);
+
+		for(int i = (iColumns - iRows); i < iColumns; i++) {
+			for(int g = 0; g < iRows; g++) {
+				if(g == i - iColumns + iRows) {
+					ppTmpMatrix[i][g] = 1.0f;
+
+				} else {
+					ppTmpMatrix[i][g] = 0.0f;
+				}
+			}
+		}
+		CopyMatrix(ppTmpMatrix, ppMatrix, iRows, iColumns - iRows);
+		ppMatrix = ppTmpMatrix;
+	}
 
 	if(ppMatrix == NULL) {
 		printf("Error while reading matrix. Terminate programm. / Fehler beim Einlesen der Matrix. Beende Programm.\n");
@@ -54,11 +79,180 @@ int main(int argc, char * argv[])
 	StepSix(ppMatrix, pivots);
 	printf("\nFertig - ");
 	PrintMatrix(ppMatrix, FALSE);
-	PrintMatrix(ppMatrix, TRUE);
+	if(!pr.bNoSCalculation) {
+		PrintMatrix(ppMatrix, TRUE);
+	}
 	//system("pause");
 	WaitForKey();
 	FreeMatrixMemory(ppMatrix, iColumns);
 	return 0;
+}
+
+PARSE_RESULT ParseArguments(int argc, char * argv[])
+{
+	PARSE_RESULT pr = {
+		FALSE, 
+		FALSE, 
+		FALSE, 
+		FALSE, 
+		FALSE, 
+		FALSE, 
+		FALSE,
+		FALSE,
+		NULL, 
+		NULL, 
+		NULL};
+	if(argc < 2) {
+		return pr;
+	} else {
+		int bWaitForFile = FALSE;
+		int iFilePlacesUsed = 0;
+		FILE_TYPE ftFileInput[3] = {NOTHING, NOTHING, NOTHING};
+		for(int i = 1 /* erstes Argument = Dateipfad = ignorieren */; i < argc; i++) {
+			if(bWaitForFile == TRUE) {
+				if(ftFileInput[0] == INPUT) {
+					pr.sInputFileName = (char *)malloc(strlen(argv[i]) + 1);
+					strcpy(pr.sInputFileName, argv[1]);
+				} else if(ftFileInput[0] == OUTPUT) {
+					pr.sOutputFileName = (char *)malloc(strlen(argv[i]) + 1);
+					strcpy(pr.sOutputFileName, argv[1]);
+				} else if(ftFileInput[0] == INPUT) {
+					pr.sScriptFileName = (char *)malloc(strlen(argv[i]) + 1);
+					strcpy(pr.sScriptFileName, argv[1]);
+				}
+				ftFileInput[0] = ftFileInput[1];
+				ftFileInput[1] = ftFileInput[2];
+				ftFileInput[2] = NOTHING;
+				iFilePlacesUsed--;
+			} else if(argv[i][0] == '-' && argv[i][1] != '-') { // "-(...)" und nicht "--(...)"
+				for(int g = 0; argv[i][g] != '\0'; g++) {
+					switch(argv[i][g]) {
+						case 'i':
+							pr.bUseInput = TRUE;
+							ftFileInput[iFilePlacesUsed] = INPUT;
+							iFilePlacesUsed ++;
+							bWaitForFile = TRUE;
+							break;
+						case 'o':
+							pr.bUseOutput = TRUE;
+							ftFileInput[iFilePlacesUsed] = OUTPUT;
+							iFilePlacesUsed ++;
+							bWaitForFile = TRUE;
+							break;
+						case 's':
+							pr.bUseScript = TRUE;
+							ftFileInput[iFilePlacesUsed] = OUTPUT;
+							iFilePlacesUsed ++;
+							bWaitForFile = TRUE;
+							break;
+						case 'v':
+							pr.bVerbose = TRUE;
+							break;
+						case 'a':
+							pr.bAppend = TRUE;
+							break;
+						case 'n':
+							pr.bNoSCalculation = TRUE;
+							break;
+						case 'e':
+							pr.bImmediateExit = TRUE;
+							break;
+						case 'h':
+							pr.bPrintHelp = TRUE;
+							break;
+					}
+				}
+			} else if(argv[i][0] == '-' && argv[i][1] == '-') {
+				if(strcmp(argv[i], "--output") == 0) {
+					pr.bUseInput = TRUE;
+					ftFileInput[iFilePlacesUsed] = INPUT;
+					iFilePlacesUsed ++;
+					bWaitForFile = TRUE;
+				} else if(strcmp(argv[i], "--input") == 0) {
+					pr.bUseOutput = TRUE;
+					ftFileInput[iFilePlacesUsed] = OUTPUT;
+					iFilePlacesUsed ++;
+					bWaitForFile = TRUE;
+				} else if(strcmp(argv[i], "--script") == 0) {
+					pr.bUseScript = TRUE;
+					ftFileInput[iFilePlacesUsed] = OUTPUT;
+					iFilePlacesUsed ++;
+					bWaitForFile = TRUE;
+				} else if(strcmp(argv[i], "--verbose") == 0) {
+					pr.bVerbose = TRUE;
+				} else if(strcmp(argv[i], "--append") == 0) {
+					pr.bAppend = TRUE;
+				} else if(strcmp(argv[i], "--noS") == 0) {
+					pr.bNoSCalculation = TRUE;
+				} else if(strcmp(argv[i], "--help") == 0) {
+					pr.bPrintHelp = TRUE;
+				} else if(strcmp(argv[i], "--exit_immediately") == 0) {
+					pr.bImmediateExit = TRUE;
+				} else {
+					printf("Unknown argument. Ignore. / Unbekannter Parameter. Wird ignoriert.\n");
+				}
+			}
+		}
+		if(iFilePlacesUsed != 0) {
+#ifdef _USE_WINDOWS_CODE
+			printf("Please give all file paths for the specified arguments! / Bitte geben Sie alle Dateipfade an f\x81r die spezifizierten Parameter!\n");
+#else
+			printf("Please give all file paths for the specified arguments! / Bitte geben Sie alle Dateipfade an für die spezifizierten Parameter!\n");
+#endif
+			if(!pr.bImmediateExit) {
+				WaitForKey();
+			}
+			exit(-1);
+		}
+	}
+	return pr;
+}
+
+void PrintHelp()
+{
+	printf("Help to Gaussian Elimination Calculator\n");
+	printf("\n");
+	printf("This small console programm calculates the gaussian elimination algorithm for a given matrix.\n");
+	printf("\n");
+	printf("You can use this command line arguments to specify programm's behaviour:\n");
+	printf("	-o/--output: Write the elementary matrixs uses while algorithm to a file. In standard mode, the file will be overwrited.\n");
+	printf("	-i/--input: Read the input matrix from a file.\n");
+	printf("	-s/--script: Read all programms input you give normally by the screen from a file.\n");
+	printf("	-v/--verbose: Gives more detailed output to the output file. For this parameter, you have to specify parameter '-o/--output', otherwise the parameter would be ignored.\n");
+	printf("	-a/--append: Prevent owerwriting the output file. The content will be append to file. For this parameter, you have to specify parameter '-o/--output', otherwise the parameter would be ignored.\n");
+	printf("	-n/--noS: Suppress calculation of the S matrix.\n");
+	printf("	-e/--exit_immediately: Suppress the secure query befor terminate programm.\n");
+	printf("	-h/--help: Gives the help. After this, programm terminate.\n");
+	printf("\n");
+	printf("Hilfe zum Treppennormalformberechner\n");
+	printf("\n");
+#ifdef _USE_WINDOWS_CODE
+	printf("Dieses kleine Konsolenprogramm berechnet \x81 \bber das Gauss'sche Eliminationsverfahren die Treppennormalform f\x81r eine gegebene Matrix aus.");
+#else
+	printf("Dieses kleine Konsolenprogramm berechnet über das Gauss'sche Eliminationsverfahren die Treppennormalform für eine gegebene Matrix aus.");
+#endif
+	printf("\n");
+#ifdef _USE_WINDOWS_CODE
+	printf("Sie k\x94nnen folgene Parameter benutzen, um das Verhalten des Programms anzupassen:\n");
+#else
+	printf("Sie können folgene Parameter benutzen, um das Verhalten des Programms anzupassen:\n");
+#endif
+	printf("	-o/--output: Schreibt die Elementarmatrizen, die zur Berechnung genutzt werden, in eine Datei.\n");
+	printf("	-i/--input: Liest die Eingabematrix aus einer Datei.\n");
+	printf("	-s/--script: Liest alle Eingaben, die normalerweise vom Bildschirm eingelesen werden, aus einer Datei.\n");
+#ifdef _USE_WINDOWS_CODE
+	printf("	-v/--verbose: Gibt mehr detailliertere Ergebnisse in die Ausgabedatei. Um diesen Parameter nutzen zu k\x94nnen, m\x81ssen Sie auch den Parameter '-o/--output' angeben, sonst wird der Parameter ignoriert.\n");
+#else
+	printf("	-v/--verbose: Gibt mehr detailliertere Ergebnisse in die Ausgabedatei. Um diesen Parameter nutzen zu können, müssen Sie auch den Parameter '-o/--output' angeben, sonst wird der Parameter ignoriert.\n");
+#endif
+#ifdef _USE_WINDOWS_CODE
+	printf("	-v/--verbose: Verhinder das \x9A \bberschreiben der Ausgabedatei. Der Inhalt wird stattdessen angeh\x84ngt. Um diesen Parameter nutzen zu k\x94nnen, m\x81ssen Sie auch den Parameter '-o/--output' angeben, sonst wird der Parameter ignoriert.\n");
+#else
+	printf("	-v/--verbose: Verhinder das Überschreiben der Ausgabedatei. Der Inhalt wird stattdessen angehängt. Um diesen Parameter nutzen zu können, müssen Sie auch den Parameter '-o/--output' angeben, sonst wird der Parameter ignoriert.\n");
+#endif
+	printf("	-n/--noS: Verhindert das Berechnen der S-Matrix.\n");
+	printf("	-e/--exit_immediately: Verhindert die Sicherheitsabfrage vor dem Beenden des Programms.\n");
+	printf("	-h/--help: Gibt die Hilfe aus. Das Programm wird sich danach beenden.\n");
 }
 
 double ** ReadMatrix()
@@ -193,7 +387,7 @@ void PrintMatrix(double ** ppMatrix, int bPrintSMatrix)
 			g = 0;
 		}
 		int for_end;
-		if(bPrintSMatrix) {
+		if(bPrintSMatrix || bNoSCalculation) {
 			for_end = iColumns;
 		} else {
 			for_end = iColumns - iRows;
@@ -402,11 +596,13 @@ void FreeMatrixMemory(double ** ppMatrix, int iMatrixColumns)
 
 void WaitForKey()
 {
+	if(!bImmediateExit) {
 #ifdef _USE_WINDOWS_CODE
-	system("pause");
+		system("pause");
 #else
-	system("read -n1 -r");
+		system("read -n1 -r");
 #endif
+	}
 }
 
 void CopyMatrix(double ** ppBuf, double ** ppIn, int iRowsToCopy, int iColumnsToCopy)
