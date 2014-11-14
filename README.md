@@ -18,7 +18,7 @@ UNLICENSED.
 No special changes needed to build on Windows or Linux. The programm is completely C compatible.
 tested with:
  -  Windows: MS Visual Studio C/C++ Compiler, Cygwin, Pelles C Compiler
- -  Linux: Cross GCC
+ -  Linux: Cross GCC, Linux GCC
 
 ## Sourcecode
 
