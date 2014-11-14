@@ -21,6 +21,33 @@ typedef struct PositionArray {
 	int iCount; // Länge des Arrays
 } POSITION_ARRAY;
 
+typedef struct ParseResult {
+	int bUseInput;
+	int bUseOutput;
+	int bUseScript;
+	int bAppend;
+	int bNoSCalculation;
+	int bVerbose;
+	int bPrintHelp;
+	int bImmediateExit;
+	char * sInputFileName;
+	char * sOutputFileName;
+	char * sScriptFileName;
+} PARSE_RESULT;
+
+typedef enum FileType {
+	NOTHING = 0,
+	INPUT = 1,
+	OUTPUT = 2,
+	SCRIPT = 3,
+} FILE_TYPE;
+
+// Parsed die Argumente und gibt die Ergebnisse in der entsprechenen Struktur zurück
+PARSE_RESULT ParseArguments(int argc, char * argv[]);
+
+// Gibt die Hilfe aus
+void PrintHelp();
+
 // Verwaltet die Eingabemöglichkeiten
 double ** ReadMatrix();
 
@@ -76,3 +103,7 @@ int iRowsOffset = 0;
 // In fOut steht ein Stream zur Ausgabedatei der Elementarmatrizen.
 FILE * fOut;
 
+// Dieses globale Kommandozeilenargument regelt, ob erst auf eine Eingabe des Nutzers gewartet werden soll, bevor das Programm beendet werden soll
+int bImmediateExit;
+// Dieses globale Kommandozeilenargument regelt, ob eine S-Matrix berechnet werden soll
+int bNoSCalculation;
