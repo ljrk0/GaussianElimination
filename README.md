@@ -15,7 +15,7 @@ UNLICENSED.
 
 ## Building
 
-No special changes needed to build on Windows or Linux. The programm is completly C compatible.
+No special changes needed to build on Windows or Linux. The programm is completely C compatible.
 tested with:
  -  Windows: MS Visual C Compiler, Cygwin, Pelles C Compiler
  -  Linux: Cross GCC
