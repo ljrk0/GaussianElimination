@@ -311,7 +311,11 @@ double ** ReadMatrix(PARSE_RESULT prOptions)
 			strcpy(sOutputFileName, prOptions.sOutputFileName);
 		}
 
-		fOut = fopen(sOutputFileName, "w");
+		if(prOptions.bAppend) {
+			fOut = fopen(sOutputFileName, "a");
+		} else {
+			fOut = fopen(sOutputFileName, "w");
+		}
 
 		if(fOut == NULL) {
 #ifdef _USE_WINDOWS_CODE
