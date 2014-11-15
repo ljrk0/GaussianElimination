@@ -39,7 +39,6 @@ typedef enum FileType {
 	NOTHING = 0,
 	INPUT = 1,
 	OUTPUT = 2,
-	SCRIPT = 3,
 } FILE_TYPE;
 
 // Parsed die Argumente und gibt die Ergebnisse in der entsprechenen Struktur zurück
@@ -49,16 +48,16 @@ PARSE_RESULT ParseArguments(int argc, char * argv[]);
 void PrintHelp();
 
 // Verwaltet die Eingabemöglichkeiten
-double ** ReadMatrix();
+double ** ReadMatrix(PARSE_RESULT prOptions);
 
-// Liest eine Matrix aus einer Datei ein. Der Dateiname muss über den Bildschrim (nach Aufforderung) eingegeben werden. Die Größe wird dabei in die globalen Variablen "iColumns" und "iRows" geschrieben.
-double ** ReadMatrixFromFile();
+// Liest eine Matrix aus einer Datei ein. Der Dateiname muss über den Bildschrim (nach Aufforderung) eingegeben werden, wenn fFile == NULL ist. Die Größe wird dabei in die globalen Variablen "iColumns" und "iRows" geschrieben.
+double ** ReadMatrixFromFile(char * sFileName);
 
 // Liest eine Matrix aus einer Datei ein. Die Werte sowie die Zeilen und Spaltenanzahl müssen über den Bildschrim (nach Aufforderung) eingegeben werden. Die Größe wird dabei in die globalen Variablen "iColumns" und "iRows" geschrieben.
 double ** ReadMatrixFromInput();
 
 // Gibt eine Matrix auf dem Bildschirm aus.
-void PrintMatrix(double ** ppMatrix, int bPrintSMatrix);
+void PrintMatrix(double ** ppMatrix, int bPrintSMatrix, FILE * fOutputStream);
 
 // Reserviert den Speicher für eine Matrix
 double ** AllocateMatrixMemory(int iColumns, int iRows);
