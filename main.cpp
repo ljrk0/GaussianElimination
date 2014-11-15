@@ -24,9 +24,8 @@ int main(int argc, char * argv[])
 		}
 	}
 
-	double ** ppMatrix = ReadMatrix();
+	double ** ppMatrix = ReadMatrix(pr);
 	
-
 	if(!pr.bNoSCalculation) {
 		iColumns += iRows;
 		double ** ppTmpMatrix = AllocateMatrixMemory(iColumns + iRows, iRows);
@@ -53,7 +52,11 @@ int main(int argc, char * argv[])
 	}
 
 	printf("Eingelesen - ");
-	PrintMatrix(ppMatrix, FALSE);
+	PrintMatrix(ppMatrix, FALSE, stdout);
+	if(pr.bVerbose) {
+		fprintf(fOut, "Eingelesen - ");
+		PrintMatrix(ppMatrix, FALSE, fOut);
+	}
 
 	POSITION posPivot = StepOne(ppMatrix);
 	if(posPivot.iColumn == -1) {
@@ -65,22 +68,45 @@ int main(int argc, char * argv[])
 
 	StepTwo(ppMatrix, &posPivot);
 	printf("\nSchritt 1 & 2 - ");
-	PrintMatrix(ppMatrix, FALSE);
+	PrintMatrix(ppMatrix, FALSE, stdout);
+	if(pr.bVerbose) {
+		fprintf(fOut, "\nSchritt 1 & 2 - ");
+		PrintMatrix(ppMatrix, FALSE, fOut);
+	}
 	StepThree(ppMatrix, posPivot);
 	printf("\nSchritt 3 - ");
-	PrintMatrix(ppMatrix, FALSE);
+	PrintMatrix(ppMatrix, FALSE, stdout);
+	if(pr.bVerbose) {
+		fprintf(fOut, "\nSchritt 3 - ");
+		PrintMatrix(ppMatrix, FALSE, fOut);
+	}
 	StepFour(ppMatrix, posPivot);
 	printf("\nSchritt 4 - ");
-	PrintMatrix(ppMatrix, FALSE);
+	PrintMatrix(ppMatrix, FALSE, stdout);
+	if(pr.bVerbose) {
+		fprintf(fOut, "\nSchritt 4 - ");
+		PrintMatrix(ppMatrix, FALSE, fOut);
+	}
 	POSITION_ARRAY pivots = StepFive(ppMatrix, posPivot);
 	printf("\nSchritt 5 - ");
-	PrintMatrix(ppMatrix, FALSE);
+	PrintMatrix(ppMatrix, FALSE, stdout);
+	if(pr.bVerbose) {
+		fprintf(fOut, "\nSchritt 5 - ");
+		PrintMatrix(ppMatrix, FALSE, fOut);
+	}
 	AddPosition(&pivots, posPivot);
 	StepSix(ppMatrix, pivots);
 	printf("\nFertig - ");
-	PrintMatrix(ppMatrix, FALSE);
+	PrintMatrix(ppMatrix, FALSE, stdout);
+	if(pr.bVerbose) {
+		fprintf(fOut, "\nFertig - ");
+		PrintMatrix(ppMatrix, FALSE, fOut);
+	}
 	if(!pr.bNoSCalculation) {
-		PrintMatrix(ppMatrix, TRUE);
+		PrintMatrix(ppMatrix, TRUE, stdout);
+		if(pr.bVerbose) {
+			PrintMatrix(ppMatrix, TRUE, fOut);
+		}
 	}
 	//system("pause");
 	WaitForKey();
@@ -105,45 +131,33 @@ PARSE_RESULT ParseArguments(int argc, char * argv[])
 	if(argc < 2) {
 		return pr;
 	} else {
-		int bWaitForFile = FALSE;
 		int iFilePlacesUsed = 0;
 		FILE_TYPE ftFileInput[3] = {NOTHING, NOTHING, NOTHING};
 		for(int i = 1 /* erstes Argument = Dateipfad = ignorieren */; i < argc; i++) {
-			if(bWaitForFile == TRUE) {
+			if(iFilePlacesUsed > 0) {
 				if(ftFileInput[0] == INPUT) {
 					pr.sInputFileName = (char *)malloc(strlen(argv[i]) + 1);
-					strcpy(pr.sInputFileName, argv[1]);
+					strcpy(pr.sInputFileName, argv[i]);
 				} else if(ftFileInput[0] == OUTPUT) {
 					pr.sOutputFileName = (char *)malloc(strlen(argv[i]) + 1);
-					strcpy(pr.sOutputFileName, argv[1]);
-				} else if(ftFileInput[0] == INPUT) {
-					pr.sScriptFileName = (char *)malloc(strlen(argv[i]) + 1);
-					strcpy(pr.sScriptFileName, argv[1]);
+					strcpy(pr.sOutputFileName, argv[i]);
 				}
 				ftFileInput[0] = ftFileInput[1];
 				ftFileInput[1] = ftFileInput[2];
 				ftFileInput[2] = NOTHING;
 				iFilePlacesUsed--;
 			} else if(argv[i][0] == '-' && argv[i][1] != '-') { // "-(...)" und nicht "--(...)"
-				for(int g = 0; argv[i][g] != '\0'; g++) {
+				for(int g = 1; argv[i][g] != '\0'; g++) {
 					switch(argv[i][g]) {
 						case 'i':
 							pr.bUseInput = TRUE;
 							ftFileInput[iFilePlacesUsed] = INPUT;
 							iFilePlacesUsed ++;
-							bWaitForFile = TRUE;
 							break;
 						case 'o':
 							pr.bUseOutput = TRUE;
 							ftFileInput[iFilePlacesUsed] = OUTPUT;
 							iFilePlacesUsed ++;
-							bWaitForFile = TRUE;
-							break;
-						case 's':
-							pr.bUseScript = TRUE;
-							ftFileInput[iFilePlacesUsed] = OUTPUT;
-							iFilePlacesUsed ++;
-							bWaitForFile = TRUE;
 							break;
 						case 'v':
 							pr.bVerbose = TRUE;
@@ -160,24 +174,19 @@ PARSE_RESULT ParseArguments(int argc, char * argv[])
 						case 'h':
 							pr.bPrintHelp = TRUE;
 							break;
+						default:
+							printf("Unknown argument: %c. It is ignored. / Unbekannter Parameter: %c. Wird ignoriert.\n", argv[i][g]);
 					}
 				}
 			} else if(argv[i][0] == '-' && argv[i][1] == '-') {
 				if(strcmp(argv[i], "--output") == 0) {
 					pr.bUseInput = TRUE;
-					ftFileInput[iFilePlacesUsed] = INPUT;
+					ftFileInput[iFilePlacesUsed] = OUTPUT;
 					iFilePlacesUsed ++;
-					bWaitForFile = TRUE;
 				} else if(strcmp(argv[i], "--input") == 0) {
 					pr.bUseOutput = TRUE;
-					ftFileInput[iFilePlacesUsed] = OUTPUT;
+					ftFileInput[iFilePlacesUsed] = INPUT;
 					iFilePlacesUsed ++;
-					bWaitForFile = TRUE;
-				} else if(strcmp(argv[i], "--script") == 0) {
-					pr.bUseScript = TRUE;
-					ftFileInput[iFilePlacesUsed] = OUTPUT;
-					iFilePlacesUsed ++;
-					bWaitForFile = TRUE;
 				} else if(strcmp(argv[i], "--verbose") == 0) {
 					pr.bVerbose = TRUE;
 				} else if(strcmp(argv[i], "--append") == 0) {
@@ -195,9 +204,9 @@ PARSE_RESULT ParseArguments(int argc, char * argv[])
 		}
 		if(iFilePlacesUsed != 0) {
 #ifdef _USE_WINDOWS_CODE
-			printf("Please give all file paths for the specified arguments! / Bitte geben Sie alle Dateipfade an f\x81r die spezifizierten Parameter!\n");
+			printf("Please give all file paths for the specified arguments! / Bitte geben Sie alle Dateipfade f\x81r die spezifizierten Parameter an!\n");
 #else
-			printf("Please give all file paths for the specified arguments! / Bitte geben Sie alle Dateipfade an für die spezifizierten Parameter!\n");
+			printf("Please give all file paths for the specified arguments! / Bitte geben Sie alle Dateipfade für die spezifizierten Parameter an!\n");
 #endif
 			if(!pr.bImmediateExit) {
 				WaitForKey();
@@ -217,7 +226,6 @@ void PrintHelp()
 	printf("You can use this command line arguments to specify programm's behaviour:\n");
 	printf("	-o/--output: Write the elementary matrixs uses while algorithm to a file. In standard mode, the file will be overwrited.\n");
 	printf("	-i/--input: Read the input matrix from a file.\n");
-	printf("	-s/--script: Read all programms input you give normally by the screen from a file.\n");
 	printf("	-v/--verbose: Gives more detailed output to the output file. For this parameter, you have to specify parameter '-o/--output', otherwise the parameter would be ignored.\n");
 	printf("	-a/--append: Prevent owerwriting the output file. The content will be append to file. For this parameter, you have to specify parameter '-o/--output', otherwise the parameter would be ignored.\n");
 	printf("	-n/--noS: Suppress calculation of the S matrix.\n");
@@ -239,7 +247,6 @@ void PrintHelp()
 #endif
 	printf("	-o/--output: Schreibt die Elementarmatrizen, die zur Berechnung genutzt werden, in eine Datei.\n");
 	printf("	-i/--input: Liest die Eingabematrix aus einer Datei.\n");
-	printf("	-s/--script: Liest alle Eingaben, die normalerweise vom Bildschirm eingelesen werden, aus einer Datei.\n");
 #ifdef _USE_WINDOWS_CODE
 	printf("	-v/--verbose: Gibt mehr detailliertere Ergebnisse in die Ausgabedatei. Um diesen Parameter nutzen zu k\x94nnen, m\x81ssen Sie auch den Parameter '-o/--output' angeben, sonst wird der Parameter ignoriert.\n");
 #else
@@ -255,38 +262,56 @@ void PrintHelp()
 	printf("	-h/--help: Gibt die Hilfe aus. Das Programm wird sich danach beenden.\n");
 }
 
-double ** ReadMatrix()
+double ** ReadMatrix(PARSE_RESULT prOptions)
 {
-#ifdef _USE_WINDOWS_CODE
-	printf("Wollen Sie die Matrix aus einer Datei laden oder \x81 \bber den Bildschirm eingeben? [Datei/Bildschirm]\n");
-#else
-	printf("Wollen Sie die Matrix aus einer Datei laden oder über den Bildschirm eingeben? [Datei/Bildschirm]\n");
-#endif
-	printf("  ");
-	char answer[100];
-	scanf("%s", answer);
-	fflush(stdin);
-
 	double ** ppMatrix;
+	char answer[100];
+	if(prOptions.bUseInput) {
+		strcpy(answer, "Datei");
+	} else {
+#ifdef _USE_WINDOWS_CODE
+		printf("Wollen Sie die Matrix aus einer Datei laden oder \x81 \bber den Bildschirm eingeben? [Datei/Bildschirm]\n");
+#else
+		printf("Wollen Sie die Matrix aus einer Datei laden oder über den Bildschirm eingeben? [Datei/Bildschirm]\n");
+#endif
+		printf("  ");
+		scanf("%s", answer);
+		fflush(stdin);
+	}
+
 	if(strcmp(answer, "Datei") == 0 || strcmp(answer, "D") == 0) {
-		ppMatrix = ReadMatrixFromFile();
+		if(prOptions.bUseInput) {
+			ppMatrix = ReadMatrixFromFile(prOptions.sInputFileName);
+		} else {
+			ppMatrix = ReadMatrixFromFile(NULL);
+		}
 	} else {
 		ppMatrix = ReadMatrixFromInput();
 	}
-
-	printf("Wollen Sie die Elementarmatrizen in eine Datei schreiben oder auf dem Bildschirm ausgeben? [Datei/Bildschirm]\n");
-	printf("  ");
+	
 	char answer2[100];
-	scanf("%s", answer2);
-	fflush(stdin);
+	if(prOptions.bUseOutput) {
+		strcpy(answer2, "Datei");
+	} else {
+		printf("Wollen Sie die Elementarmatrizen in eine Datei schreiben oder auf dem Bildschirm ausgeben? [Datei/Bildschirm]\n");
+		printf("  ");
+		scanf("%s", answer2);
+		fflush(stdin);
+	}
 
 	if(strcmp(answer2, "Datei") == 0) {
-		printf("Bitte geben Sie den Dateinamen an: ");
-		char answer3[200];
-		fgets(answer3, 100, stdin);
-		answer3[strlen(answer3) - 1] = '\0';
+		char * sOutputFileName;
+		if(!prOptions.bUseOutput) {
+			sOutputFileName = (char *)malloc(sizeof(char) * 200);
+			printf("Bitte geben Sie den Dateinamen an: ");
+			fgets(sOutputFileName, 100, stdin);
+			sOutputFileName[strlen(sOutputFileName) - 1] = '\0';
+		} else {
+			sOutputFileName = (char *)malloc(sizeof(char) * (strlen(prOptions.sOutputFileName) + 1));
+			strcpy(sOutputFileName, prOptions.sOutputFileName);
+		}
 
-		fOut = fopen(answer3, "w");
+		fOut = fopen(sOutputFileName, "w");
 
 		if(fOut == NULL) {
 #ifdef _USE_WINDOWS_CODE
@@ -295,6 +320,7 @@ double ** ReadMatrix()
 			printf("Fatal Error: Cannot open file: / Fataler Fehler: Kann Datei nicht öffnen: %s", answer);
 #endif
 		}
+		free(sOutputFileName);
 	} else {
 		fOut = stdout;
 	}
@@ -302,23 +328,31 @@ double ** ReadMatrix()
 	return ppMatrix;
 }
 
-double ** ReadMatrixFromFile()
+double ** ReadMatrixFromFile(char * sFileName)
 {
-	printf("Bitte geben Sie den Dateinamen an: ");
-	char answer[200];
-	fgets(answer, 100, stdin);
-	answer[strlen(answer) - 1] = '\0';
-	FILE * fFile = fopen(answer, "r");
+	char * sLocalFileName;
+	if(sFileName == NULL) {
+		sLocalFileName = (char *)malloc(sizeof(char) * 200);
+		printf("Bitte geben Sie den Dateinamen an: ");
+		fgets(sLocalFileName, 200, stdin);
+		sLocalFileName[strlen(sLocalFileName) - 1] = '\0';
+	} else {
+		sLocalFileName = (char *)malloc(sizeof(char) * (strlen(sFileName) + 1));
+		strcpy(sLocalFileName, sFileName);
+	}
+	
+	FILE * fFile = fopen(sLocalFileName, "r");
 
 	// stream überprüfen
 	if(fFile == NULL) {
 #ifdef _USE_WINDOWS_CODE
-		printf("Fatal Error: Cannot open file: / Fataler Fehler: Kann Datei nicht \x94 \bffnen: %s", answer);
+		printf("Fatal Error: Cannot open file: / Fataler Fehler: Kann Datei nicht \x94 \bffnen: %s", sLocalFileName);
 #else
-		printf("Fatal Error: Cannot open file: / Fataler Fehler: Kann Datei nicht öffnen: %s", answer);
+		printf("Fatal Error: Cannot open file: / Fataler Fehler: Kann Datei nicht öffnen: %s", sLocalFileName);
 #endif
 		return NULL;
 	}
+	free(sLocalFileName);
 
 	fscanf(fFile, "%d;%d\n", &iColumns, &iRows);
 	
@@ -372,12 +406,12 @@ double ** ReadMatrixFromInput()
 	return ppMatrix;
 }
 
-void PrintMatrix(double ** ppMatrix, int bPrintSMatrix)
+void PrintMatrix(double ** ppMatrix, int bPrintSMatrix, FILE * fOutputStream)
 {
 	if(bPrintSMatrix == TRUE) {
-		printf("Print S-Matrix\n");
+		fprintf(fOutputStream, "Print S-Matrix\n");
 	} else {
-		printf("Print Matrix\n");
+		fprintf(fOutputStream, "Print Matrix\n");
 	}
 	for(int i = 0; i < iRows; i++) {
 		int g;
@@ -393,12 +427,12 @@ void PrintMatrix(double ** ppMatrix, int bPrintSMatrix)
 			for_end = iColumns - iRows;
 		}
 		for( /* g schon gesetzt */; g < for_end /* for_end ist die endbedingung der for-schleife */; g++) {
-			printf("%lf", ppMatrix[g][i]);
-			printf(";"); // Trennzeichen ausgeben
+			fprintf(fOutputStream, "%lf", ppMatrix[g][i]);
+			fprintf(fOutputStream, ";"); // Trennzeichen ausgeben
 		}
-		printf("\n");
+		fprintf(fOutputStream, "\n");
 	}
-	printf("\n");
+	fprintf(fOutputStream, "\n");
 }
 
 void AddPosition(POSITION_ARRAY * posArray, POSITION posPositionToAdd)
