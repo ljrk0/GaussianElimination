@@ -26,8 +26,10 @@ int main(int argc, char * argv[])
 
 	double ** ppMatrix = ReadMatrix(pr);
 	
+	
 	if(!pr.bNoSCalculation) {
 		iColumns += iRows;
+		PrintMatrix(ppMatrix, FALSE, stdout);
 		double ** ppTmpMatrix = AllocateMatrixMemory(iColumns + iRows, iRows);
 
 		for(int i = (iColumns - iRows); i < iColumns; i++) {
@@ -647,7 +649,7 @@ void CopyMatrix(double ** ppBuf, double ** ppIn, int iRowsToCopy, int iColumnsTo
 {
 	for(int i = 0; i < iRowsToCopy; i++) {
 		for(int g = 0; g < iColumnsToCopy; g++) {
-			ppBuf[i][g] = ppIn[i][g];
+			ppBuf[g][i] = ppIn[g][i];
 		}
 	}
 }
