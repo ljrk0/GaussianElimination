@@ -23,12 +23,12 @@ tested with:
 ## Sourcecode
 
 main.cpp (main sourcecode)
-        - all needed methods (incl. main method)
-        - uses "main.h"
+ - all needed methods (incl. main method)
+ - uses "main.h"
 
 main.h (headerfile)
-        - all used include
-        - all method-declarations
-        - all used global variables
-        - comments
+ - all used include
+ - all method-declarations
+ - all used global variables
+ - comments
 
