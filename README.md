@@ -2,7 +2,7 @@
 
 ## Description
 
-A simple command-line cross-platform implementation of the Gaussian elimination algorithm in C/C++. You can find some more ditails in the [wiki](https://github.com/LeonardKoenig/TNF/wiki)
+A simple command-line cross-platform implementation of the Gaussian elimination algorithm in C/C++. You can find some more details in the [wiki](https://github.com/LeonardKoenig/TNF/wiki).
 
 ## Download
 
