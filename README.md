@@ -6,8 +6,7 @@ A simple command-line cross-platform implementation of the Gaussian elimination 
 
 ## Download
 
-Checkout the [releases](https://github.com/LeonardKoenig/TNF/releases) section on GitHub:
-[releases](https://github.com/LeonardKoenig/TNF/releases)
+Checkout the [releases](https://github.com/LeonardKoenig/TNF/releases) section on GitHub.
 
 ## License
 
