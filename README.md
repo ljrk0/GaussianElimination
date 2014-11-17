@@ -6,14 +6,14 @@ A simple command-line cross-platform implementation of the Gaussian elimination 
 
 ## Download
 
-Checkout the release section on GitHub:
-[https://github.com/LeonardKoenig/TNF/releases](https://github.com/LeonardKoenig/TNF/releases)
+Checkout the [releases](https://github.com/LeonardKoenig/TNF/releases) section on GitHub:
+[releases](https://github.com/LeonardKoenig/TNF/releases)
 
 ## License
 
-GPL Version 3 from 29 June 2007. You can find the license text [here](http://www.gnu.org/copyleft/gpl.html). Please check it before using the programm.
+GPL Version 3 from 29 June 2007. You can find the license text [here](http://www.gnu.org/copyleft/gpl.html). Please read it before using the programm.
 
-Here is the header of the license: <br>
+License Header: <br>
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -27,7 +27,7 @@ GNU General Public License for more details.
 ## Building
 
 No special changes needed to build on Windows or Linux. The programm is completely C compatible.
-tested with:
+Tested with:
  -  Windows: MS Visual Studio C/C++ Compiler, Cygwin, Pelles C Compiler
  -  Linux: Cross GCC, Linux GCC
 
@@ -38,7 +38,7 @@ main.cpp (main sourcecode)
  - uses "main.h"
 
 main.h (headerfile)
- - all used include
+ - all used includes
  - all method-declarations
  - all used global variables
  - comments
