@@ -24,7 +24,6 @@ typedef struct PositionArray {
 typedef struct ParseResult {
 	int bUseInput;
 	int bUseOutput;
-	int bUseScript;
 	int bAppend;
 	int bNoSCalculation;
 	int bVerbose;
@@ -32,7 +31,6 @@ typedef struct ParseResult {
 	int bImmediateExit;
 	char * sInputFileName;
 	char * sOutputFileName;
-	char * sScriptFileName;
 } PARSE_RESULT;
 
 typedef enum FileType {
