@@ -14,18 +14,7 @@ int main(int argc, char * argv[])
 		return 0;
 	}
 
-	if(pr.bUseScript) {
-		FILE * fTest = fopen(pr.sScriptFileName, "r");
-		if(fTest == NULL) {
-			printf("Can't open script file! Expect input on normal mode. / Kann die Script-Datei nicht öffnen! Erwarte Eingabe auf normalem Weg");
-		} else {
-			fclose(fTest);
-			freopen(pr.sScriptFileName, "r", stdin);
-		}
-	}
-
 	double ** ppMatrix = ReadMatrix(pr);
-	
 	
 	if(!pr.bNoSCalculation) {
 		iColumns += iRows;
@@ -124,10 +113,8 @@ PARSE_RESULT ParseArguments(int argc, char * argv[])
 		FALSE, 
 		FALSE, 
 		FALSE, 
-		FALSE, 
 		FALSE,
 		FALSE,
-		NULL, 
 		NULL, 
 		NULL};
 	if(argc < 2) {
