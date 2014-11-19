@@ -9,7 +9,9 @@ int WINAPI GaussianElimination(double ** ppMatrix, int iRows, int iColumns, GAUS
 		return -1;
 	}
 
-	iColumns += iRows;
+	if(pOutputBuffer->ppSMatrix != NULL) {
+		iColumns += iRows;
+	}
 	SetMatrixDimensions(iRows, iColumns);
 	double ** ppWorkMatrix;
 	if(pOutputBuffer->ppSMatrix == NULL) {
