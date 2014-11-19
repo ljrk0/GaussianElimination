@@ -10,7 +10,7 @@ So, if you want to compile it for linux, make sure you compile it to an .so-file
 A LIB-file is very similar to an .obj file. It is compiled, but not linked. To use it you can link it in your project. 
 Normally you can add such files under linker option "additional dependencies" or similars. If you had link it you can include
 the pulished header file (GAUSSIAN.h). It contains all needed declaration. Is this done you can call the function like any
-other function you use. BTW: In this way the linker add the standart ANSI functions like "printf", "scanf" etc.
+other function you use. BTW: In this way the linker add the standart ANSI functions like "printf", "scanf" etc. A step-by-step handout how to include the LIB into your project is in the [wiki side to the LIB-Version](https://github.com/LeonardKoenig/GaussianElimination/wiki/Algorithmus-in-eingenen-Projekten) ([here](https://github.com/LeonardKoenig/GaussianElimination/wiki/Algorithmus-in-eingenen-Projekten#wie-kann-ich-die-lib-datei-hinzuf%C3%BCgen)).
 
 ###Code
 
