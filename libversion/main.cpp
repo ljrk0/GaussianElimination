@@ -11,22 +11,31 @@ int WINAPI GaussianElimination(double ** ppMatrix, int iRows, int iColumns, GAUS
 
 	iColumns += iRows;
 	SetMatrixDimensions(iRows, iColumns);
-	double ** ppWorkMatrix = AllocateMatrixMemory(iColumns + iRows, iRows);
+	double ** ppWorkMatrix;
+	if(pOutputBuffer->ppSMatrix == NULL) {
+		ppWorkMatrix = pOutputBuffer->ppReducedEcholonForm;
+	} else {
+		double ** ppWorkMatrix = AllocateMatrixMemory(iColumns + iRows, iRows);
+	}
 	if(!ppWorkMatrix) {
 		return -1;
 	}
 
-	for(int i = (iColumns - iRows); i < iColumns; i++) {
-		for(int g = 0; g < iRows; g++) {
-			if(g == i - iColumns + iRows) {
-				ppWorkMatrix[i][g] = 1.0f;
+	if(pOutputBuffer->ppSMatrix != NULL) {
+		for(int i = (iColumns - iRows); i < iColumns; i++) {
+			for(int g = 0; g < iRows; g++) {
+				if(g == i - iColumns + iRows) {
+					ppWorkMatrix[i][g] = 1.0f;
 
-			} else {
-				ppWorkMatrix[i][g] = 0.0f;
+				} else {
+					ppWorkMatrix[i][g] = 0.0f;
+				}
 			}
 		}
+		CopyMatrix(ppWorkMatrix, ppMatrix, iRows, iColumns - iRows);
+	} else {
+		CopyMatrix(ppWorkMatrix, ppMatrix, iRows, iColumns);
 	}
-	CopyMatrix(ppWorkMatrix, ppMatrix, iRows, iColumns - iRows);
 
 	POSITION posPivot = StepOne(ppWorkMatrix);
 	//printf("%lf, %lf", ppWorkMatrix[0][0], ppWorkMatrix[0][1]);
@@ -44,7 +53,11 @@ int WINAPI GaussianElimination(double ** ppMatrix, int iRows, int iColumns, GAUS
 	StepSix(ppWorkMatrix, pivots);
 	//printf("%lf, %lf", ppWorkMatrix[0][0], ppWorkMatrix[0][1]);
 
-	DivideOutputAndSMatrix(ppWorkMatrix, pOutputBuffer);
+	if(pOutputBuffer->ppSMatrix) {
+		DivideOutputAndSMatrix(ppWorkMatrix, pOutputBuffer);
+	} else {
+		CopyMatrix(pOutputBuffer->ppReducedEcholonForm, ppWorkMatrix, iRows, iColumns);
+	}
 
 	return 0;
 }
@@ -56,7 +69,7 @@ static int iColumns, iRows;
 static int iColumnsOffset = 0;
 static int iRowsOffset = 0;
 
-void AddPosition(POSITION_ARRAY * posArray, POSITION posPositionToAdd)
+static void AddPosition(POSITION_ARRAY * posArray, POSITION posPositionToAdd)
 {
 	POSITION * tmp = posArray->pPositions;
 	posArray->pPositions = (POSITION *)malloc(sizeof(POSITION) * (posArray->iCount + 1));
@@ -67,7 +80,7 @@ void AddPosition(POSITION_ARRAY * posArray, POSITION posPositionToAdd)
 	posArray->iCount ++;
 }
 
-POSITION StepOne(double ** ppMatrix)
+static POSITION StepOne(double ** ppMatrix)
 {
 	POSITION res = {-1,-1};
 	for(int i = 0; i < iColumns; i++) {
@@ -84,7 +97,7 @@ POSITION StepOne(double ** ppMatrix)
 	return res;
 }
 
-void StepTwo(double ** ppMatrix, POSITION * posPivot)
+static void StepTwo(double ** ppMatrix, POSITION * posPivot)
 {
 	if(posPivot->iRow == 0) {
 		return;
@@ -102,7 +115,7 @@ void StepTwo(double ** ppMatrix, POSITION * posPivot)
 	posPivot->iRow = 0;
 }
 
-int StepThree(double ** ppMatrix, POSITION posPivot)
+static int StepThree(double ** ppMatrix, POSITION posPivot)
 {
 	double fElement = ppMatrix[posPivot.iColumn][0];
 
@@ -117,7 +130,7 @@ int StepThree(double ** ppMatrix, POSITION posPivot)
 	return 0;
 }
 
-void StepFour(double ** ppMatrix, POSITION posPivot)
+static void StepFour(double ** ppMatrix, POSITION posPivot)
 {
 	for(int i = 1; i < iRows; i++) {
 		double scale = ppMatrix[posPivot.iColumn][i];
@@ -133,7 +146,7 @@ void StepFour(double ** ppMatrix, POSITION posPivot)
 	}
 }
 
-POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot)
+static POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot)
 {
 	POSITION_ARRAY pivots = {NULL, 0};
 	int iRowsSave = iRows;
@@ -201,7 +214,7 @@ POSITION_ARRAY StepFive(double ** ppMatrix, POSITION posPivot)
 	return pivots;
 }
 
-void StepSix(double ** ppMatrix, POSITION_ARRAY pivots)
+static void StepSix(double ** ppMatrix, POSITION_ARRAY pivots)
 {
 	for(int i = 0; i < pivots.iCount; i++) {
 		for(int g = pivots.pPositions[i].iRow - 1; g >= 0; g--) { // von "unten" (der Matrix) nach "oben" (der Matrix) zählen
@@ -219,7 +232,7 @@ void StepSix(double ** ppMatrix, POSITION_ARRAY pivots)
 	}
 }
 
-double ** AllocateMatrixMemory(int iMatrixColumns, int iMatrixRows)
+static double ** AllocateMatrixMemory(int iMatrixColumns, int iMatrixRows)
 {
 	double ** ppMatrix;
 	ppMatrix = (double **)malloc(sizeof(double *) * iMatrixColumns);
@@ -230,7 +243,7 @@ double ** AllocateMatrixMemory(int iMatrixColumns, int iMatrixRows)
 	return ppMatrix;
 }
 
-void FreeMatrixMemory(double ** ppMatrix, int iMatrixColumns)
+static void FreeMatrixMemory(double ** ppMatrix, int iMatrixColumns)
 {
 	// Freigeben des Speichers
 	for(int i = 0; i < iMatrixColumns; i++) {
@@ -239,7 +252,7 @@ void FreeMatrixMemory(double ** ppMatrix, int iMatrixColumns)
 	free(ppMatrix);
 }
 
-void CopyMatrix(double ** ppBuf, double ** ppIn, int iRowsToCopy, int iColumnsToCopy)
+static void CopyMatrix(double ** ppBuf, double ** ppIn, int iRowsToCopy, int iColumnsToCopy)
 {
 	for(int i = 0; i < iRowsToCopy; i++) {
 		for(int g = 0; g < iColumnsToCopy; g++) {
@@ -248,13 +261,13 @@ void CopyMatrix(double ** ppBuf, double ** ppIn, int iRowsToCopy, int iColumnsTo
 	}
 }
 
-void SetMatrixDimensions(int iNewRows, int iNewColumns)
+static void SetMatrixDimensions(int iNewRows, int iNewColumns)
 {
 	iRows = iNewRows;
 	iColumns = iNewColumns;
 }
 
-void DivideOutputAndSMatrix(double ** ppWorkMatrix, GAUSSIAN_ELIMINATION_OUTPUT * pOutputBuffer)
+static void DivideOutputAndSMatrix(double ** ppWorkMatrix, GAUSSIAN_ELIMINATION_OUTPUT * pOutputBuffer)
 {
 	// Treppennormalform
 	for(int i = 0; i < iColumns - iRows; i++) {
