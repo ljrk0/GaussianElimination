@@ -42,3 +42,6 @@ main.h (headerfile)
  - all used global variables
  - comments
 
+## Algorithm
+
+If you only want to use the algorithm in your own project, you can do this of course. So that you don't have to extract the pure algorithm from the source code, there is a special [LIB-Version](https://github.com/LeonardKoenig/GaussianElimination/releases/tag/LIB-v1.0.0-pre.1) of the algorithm. At the moment, the LIB-version is windows only. With the LIB-Version you can use the algorithm without additional dependencies in the final programm. All description you can find in the internet ("add a static libary to programm") or in our [wiki of the LIB-Version](https://github.com/LeonardKoenig/GaussianElimination/wiki/Algorithmus-in-eingenen-Projekten) (german only).
