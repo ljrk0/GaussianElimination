@@ -17,7 +17,7 @@ int WINAPI GaussianElimination(double ** ppMatrix, int iRows, int iColumns, GAUS
 	if(pOutputBuffer->ppSMatrix == NULL) {
 		ppWorkMatrix = pOutputBuffer->ppReducedEcholonForm;
 	} else {
-		double ** ppWorkMatrix = AllocateMatrixMemory(iColumns + iRows, iRows);
+		ppWorkMatrix = AllocateMatrixMemory(iColumns + iRows, iRows);
 	}
 	if(!ppWorkMatrix) {
 		return -1;
@@ -28,7 +28,6 @@ int WINAPI GaussianElimination(double ** ppMatrix, int iRows, int iColumns, GAUS
 			for(int g = 0; g < iRows; g++) {
 				if(g == i - iColumns + iRows) {
 					ppWorkMatrix[i][g] = 1.0f;
-
 				} else {
 					ppWorkMatrix[i][g] = 0.0f;
 				}
